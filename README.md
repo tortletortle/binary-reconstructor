@@ -74,3 +74,11 @@ python pseudo_bridge.py /path/to/trusted.so --pseudocode proposal.c --trusted
 python pseudo_bridge.py /path/to/trusted.so --headless /path/to/ghidra/support/analyzeHeadless --trusted
 ```
 See bridge-summary-v012.csv. Full local result JSON and regression transcript in the V0.12 archive.
+
+## V0.13: bounded typed sequential pseudocode
+
+`typed_bridge.py` adds local declarations and sequential assignment by substitution, narrow unsigned types, two's-complement 8/16-bit casts, CONCAT and SUB byte operations within 32 bits. Narrow arithmetic requires explicit unsigned-word casts; this is not a general C parser or a full SSA graph. CONCAT masks operands to their stated byte widths, SUB discards a literal number of low bytes. Unknown syntax, uninitialized values and oversized expansions are rejected. `formal.py` now supports register-only MOVSBL and MOVSWL sign extension.
+
+Local test: 70/70 regression tests passed. Paired development suite (32 binaries: 16 historical proposals, 16 new including 4 intentionally invalid; GCC and Clang): V0.12 parser 14 verified, V0.13 parser before MOVSX 24 verified and 4 unresolved, full V0.13 28 verified (18 direct, 10 repaired), 4 correctly rejected. V0.12 parser baseline rerun with shared verifier; the results before the MOVSX change were identical for that baseline. Cross-compiler replay: 114,940 comparisons, no mismatch. All proposals are manually authored, not actual Ghidra output. These are not blind held-out industrial cases. Proofs are limited to the supported machine-code model. Real Ghidra execution and sandboxing remain unavailable. Trusted fixtures only.
+
+Reproduce: `python -m unittest discover -v`, `python experiment_typed.py`, or `python typed_bridge.py /path/to/trusted.so --pseudocode proposal.c --trusted`. See typed-summary-v013.csv; full raw JSON and before-MOVSX results and regression log in the archive.
