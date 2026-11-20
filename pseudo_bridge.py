@@ -76,14 +76,14 @@ def verify_proposal(binary, node):
         return {'status':'MODEL_VERIFIED','formal':r,'tested':len(xs)}
 
 
-def pipeline(binary, code=None, *, trusted=False, headless=None, allow_repair=True):
+def pipeline(binary, code=None, *, trusted=False, headless=None, allow_repair=True, proposal_parser=extract_proposal):
     if not trusted:raise ValueError('explicit trusted fixture opt-in required; no sandbox')
     origin='provided_pseudocode'
     if code is None:
         raw=export(binary,'transform',headless=headless)
         if raw['status']!='RAW_PSEUDOCODE':return {'status':raw['status'],'export':raw}
         code=raw['code'];origin='ghidra_export'
-    try:node=extract_proposal(code)
+    try:node=proposal_parser(code)
     except ValueError as e:return {'status':'PARSE_REJECTED','reason':str(e),'origin':origin}
     expression=render(node); first=verify_proposal(binary,node)
     result={'status':first['status'],'origin':origin,'initial_expression':expression,'initial':first}
