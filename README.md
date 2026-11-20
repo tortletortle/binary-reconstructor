@@ -33,3 +33,11 @@ python experiment_structure.py > structure-results.json
 python audit_structure.py
 ```
 Per-case measurements: `structure-summary.csv`. Full original JSON logs and regression transcript are included in the V0.9 archive; the scripts regenerate them.
+
+## V0.10: joint structural and affine synthesis
+
+On UNRESOLVED from V0.9, enumerate bounded expression trees bottom-up, merge candidates by concrete probe signature, and look up complementary signatures for +, -, and XOR. Fit modular affine wrappers a*f(x)+b when an odd probe difference is available. Rebuild signature classes after a replayed SMT counterexample. Neither probe equivalence nor search exhaustion is a formal proof; the final accepted candidate must pass the existing machine-model verifier. The default fallback allows seven AST nodes, 15,000 states per restart, 200,000 generated candidates/lookups, 20 compilations, a cooperative eight-second timer and one-second verification timeout. Not a full e-graph or general program synthesizer. Trusted pure uint32 fixtures only; native execution remains unsandboxed.
+
+Local regression: V0.9 39/39, V0.10 46/46. Paired 51-case development suite: V0.9 40/51, V0.10 50/51 (historical 40/43 vs 43/43; eight fresh authored tasks 0/8 vs 7/8). Total measured algorithm time 6.057824 vs 7.446624 s, with additional fallback budget. Cross-compiler replay: 205,250 comparisons, zero mismatches. Disabling affine parameter synthesis left the large-constant historical task unresolved. The sixth-power case still exhausted the state cap even with 11 nodes and 60,000 states. No real-world independent benchmark yet.
+
+Reproduce with `python -m unittest discover -v` and `python experiment_joint.py`. Per-case data in `joint-summary.csv`; complete JSON experiment, replay, ablation and regression logs in the V0.10 archive.
