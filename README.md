@@ -41,3 +41,20 @@ On UNRESOLVED from V0.9, enumerate bounded expression trees bottom-up, merge can
 Local regression: V0.9 39/39, V0.10 46/46. Paired 51-case development suite: V0.9 40/51, V0.10 50/51 (historical 40/43 vs 43/43; eight fresh authored tasks 0/8 vs 7/8). Total measured algorithm time 6.057824 vs 7.446624 s, with additional fallback budget. Cross-compiler replay: 205,250 comparisons, zero mismatches. Disabling affine parameter synthesis left the large-constant historical task unresolved. The sixth-power case still exhausted the state cap even with 11 nodes and 60,000 states. No real-world independent benchmark yet.
 
 Reproduce with `python -m unittest discover -v` and `python experiment_joint.py`. Per-case data in `joint-summary.csv`; complete JSON experiment, replay, ablation and regression logs in the V0.10 archive.
+
+## V0.11: external-origin binary pilot and optional Ghidra exporter
+
+The benchmark uses eight existing implementations/macros from local Linux UAPI and glibc ELF headers, compiled with GCC and Clang at -O2 (16 binaries), and one already-compiled libgcc _bswapsi2.o, with symbol renamed and a separate calling wrapper for native replay. Debug information stripped; function symbols retained. Candidate source is generated from machine instructions alone, then compiled with the opposite compiler. Sources and binary hashes, instructions, generated C and formal results are recorded in the archive. This is a small post-hoc development pilot, not an independent blind or firmware benchmark. No CERS synthesis or LLM is used in this experiment.
+
+The initial V0.10 run: 7/17 MODEL_VERIFIED, 2 TESTED_ONLY, 8 LIFT_UNSUPPORTED. Instruction support was extended to 32/64-bit register BSWAP and register-only MOVZX forms, retaining fail-closed unsupported memory access and unknown high bits. Re-running identical fixture recipe: 15/17 MODEL_VERIFIED, 2 TESTED_ONLY, 0 unsupported lifts; 17/17 compiled, 69,785 native comparisons, zero mismatches. The two remaining compiler combinations (ELF relocation symbol and symbol binding) hit the verifier's undefined %rdi upper-register restriction. Do not label TESTED_ONLY as proof. Regression: 53/53 local unit tests (46 previous, 7 new). Environment: Debian x86-64, GCC 14.2, Clang 17, libz3, linux-libc-dev 6.12.107-1, libc6-dev 2.41. Native execution remains unsandboxed: trusted test fixtures only.
+
+Optional Ghidra integration: ghidra_adapter.py invokes the documented headless launcher and ChronoExport.java uses DecompInterface to export raw pseudocode of one uniquely named non-thunk function. Raw output is explicitly unverified and never executed or automatically compiled. The Python wrapper's success, missing dependency, missing output and timeout contracts were unit-tested using a mock runner; Ghidra itself is not installed and network DNS failed, so neither real invocation nor Java compilation against the Ghidra libraries was verified. There is not yet a Ghidra-vs-Chrono comparison or Ghidra-to-CERS pipeline.
+
+Reproduce the local pilot:
+```sh
+python -m unittest discover -v
+python external_benchmark.py --out external-results-v011.json
+# Optional: after installing a compatible Ghidra distribution:
+python ghidra_adapter.py /path/to/trusted-binary transform --headless /path/to/ghidra/support/analyzeHeadless
+```
+For the baseline, use the same external_benchmark.py with V0.10 sources. Per-case comparison: external-summary-v011.csv. Full baseline/current JSON and regression transcript in the V0.11 archive. Next: real Ghidra smoke test, safe expression extraction and verification, unknown upper-register modeling, then a held-out benchmark with diverse functions.
