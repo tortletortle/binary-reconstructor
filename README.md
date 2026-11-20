@@ -1,31 +1,9 @@
-﻿# 二进制逆向助手
+# ChronoCompiler / 时光倒流编译器
 
-> 状态：Private 开发仓
+Private research prototype, V0.6 source migration. Linux x86-64, Python 3, GCC, Clang, GNU objdump and system libz3.
 
-## 当前完成度
+Run `python -m unittest discover -v`. Analyze a trusted fixture with `gcc -O0 -shared -fPIC fixtures/original.c -o /tmp/chrono-fixture.so` and `python chrono.py /tmp/chrono-fixture.so transform`. Run `python experiment_cers.py` to reproduce the seven synthetic mutation cases. Additional experiments: `benchmark.py`, `benchmark_flow.py`, `holdout.py`, `experiment_formal.py`, `reconstruction_formal.py`.
 
-- 记录进度：待迁入源码 / 版本包后核定
-- **未经验收功能不得标记为已完成。**
+## Scope
 
-## 目标 / 架构 / 运行方式
-
-（待补全。）
-
-## 工程约定
-
-1. 一项目一仓库 · 开发期 Private
-2. 保留本地 Git 历史与 tags
-3. 版本附测试报告与变更记录（docs/）
-
-## 迁移
-
-若本地已有完整历史：
-
-```bash
-cd <本地目录>
-git remote add origin https://github.com/tortletortle/binary-reconstructor.git
-git push -u origin --all
-git push origin --tags
-```
-
-不要用骨架 force push 覆盖已有历史。
+Restricted, trusted, pure uint32_t -> uint32_t functions under SysV ABI. V0.1 CFG extraction; V0.2 straight-line lifting; V0.3 restricted acyclic CFG lifting; V0.4 SMT comparison; V0.5 path-sensitive forward branches; V0.6 single-token repair with accumulated counterexample screening. SAT means a model-level counterexample; UNSAT means equivalence only within the supported machine model. Loops, memory effects and external calls are unsupported. No general-purpose decompiler, LLM integration, or sandbox. Native execution is unsandboxed: never use untrusted binaries or source. Historical raw JSON/text reports remain in the original V0.6 archive; source files have been migrated and checked against their Git blob hashes. No original Git history was available in the ZIP; this migration preserves the existing repository history.
