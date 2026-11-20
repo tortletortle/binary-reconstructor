@@ -1,0 +1,18 @@
+case,original_compiler,baseline_status,v011_status,native_comparisons,formal_reason
+linux_swab32,gcc,LIFT_UNSUPPORTED,MODEL_VERIFIED,4105,
+linux_swab32,clang,LIFT_UNSUPPORTED,MODEL_VERIFIED,4105,
+linux_swahw32,gcc,MODEL_VERIFIED,MODEL_VERIFIED,4105,
+linux_swahw32,clang,MODEL_VERIFIED,MODEL_VERIFIED,4105,
+linux_swahb32,gcc,LIFT_UNSUPPORTED,MODEL_VERIFIED,4105,
+linux_swahb32,clang,LIFT_UNSUPPORTED,MODEL_VERIFIED,4105,
+elf_r_sym,gcc,MODEL_VERIFIED,MODEL_VERIFIED,4105,
+elf_r_sym,clang,TESTED_ONLY,TESTED_ONLY,4105,undefined %rdi
+elf_r_type,gcc,LIFT_UNSUPPORTED,MODEL_VERIFIED,4105,
+elf_r_type,clang,LIFT_UNSUPPORTED,MODEL_VERIFIED,4105,
+elf_st_bind,gcc,LIFT_UNSUPPORTED,MODEL_VERIFIED,4105,
+elf_st_bind,clang,TESTED_ONLY,TESTED_ONLY,4105,undefined %rdi
+elf_st_type,gcc,MODEL_VERIFIED,MODEL_VERIFIED,4105,
+elf_st_type,clang,MODEL_VERIFIED,MODEL_VERIFIED,4105,
+elf_st_visibility,gcc,MODEL_VERIFIED,MODEL_VERIFIED,4105,
+elf_st_visibility,clang,MODEL_VERIFIED,MODEL_VERIFIED,4105,
+libgcc_bswapsi2,precompiled archive,LIFT_UNSUPPORTED,MODEL_VERIFIED,4105,
