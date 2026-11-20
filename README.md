@@ -19,3 +19,17 @@ Local GCC 14.2, x86-64 Linux, system libz3: 25/25 regression tests passed. On se
 Run `python -m unittest discover -v`, `python experiment_synth.py > synth-results.json`, and `python replay_synth.py > replay-results-v08.json`. CERS now uses SMT QF_BV holes for arbitrary uint32 constants in a bounded AST template, with up to two modified sites, concrete probes, recompilation and model-relative counterexample-guided verification. This applies existing CEGIS(T) ideas, not a claim of algorithmic novelty (Abate et al., CAV 2018, DOI 10.1007/978-3-319-96145-3_15).
 
 Local Linux x86-64, GCC 14.2, Clang 17 and system libz3: 32/32 regression tests passed. Seven legacy synthetic cases and 24 generated tasks (seeds 17,29,43): V0.7 enum 6/31, V0.8 synth 28/31 verified. Legacy 6/7 vs 7/7; each seeded group 0/8 vs 7/8. Both methods allow 2 edits and 60 compilations per task; solver and enumeration budgets differ, not equal wall-clock budgets. Enum 8 verification calls, 0.835 s; synth 87 fitting calls plus 29 verification calls, 2.8131 s. Cross-compiler native replay 114,940 comparisons, no mismatches. The three unresolved tasks are repeated tests of the same fixed-tree limitation (x*x*x from x+2u). Not an independent real binary corpus. No sandbox. Trusted pure fixtures only. Arbitrary C, loops, memory and external effects remain unsupported. See synth-summary.csv for per-case outcomes; raw logs are included in the V0.8 ZIP and can be regenerated with the commands above.
+
+## V0.9: bounded expression structure synthesis
+
+The hybrid first runs V0.8 fixed-tree synthesis. Only on UNRESOLVED does it use bounded breadth-first structural search (subtree deletion/replacement, growth, operator changes, commutative canonicalization). A grammar rewrite is not an individual AST-node edit. Defaults: two rewrites, nine nodes, depth five, 15,000 distinct states, 30 compilations, 1-second per verification solver timeout. The 10-second structural timer is cooperative, not a hard end-to-end deadline. Structure fallback uses a small fixed atom set, not symbolic holes. Native execution is unsandboxed; trusted uint32 fixtures only.
+
+Local Linux x86-64 GCC 14.2 / Clang 17 / libz3: original 32/32 tests, new total 39/39. Paired 43-case synthetic experiment: V0.8 29/43 vs V0.9 40/43 verified; legacy+seeded 28/31 vs 31/31 (three identical cube challenges); newly authored structural tasks 1/12 vs 9/12. Measured algorithm time 4.334 vs 6.771 seconds (fallback adds a separate search budget; not equal wall-clock or search budgets). All 40 accepted candidates replayed across GCC and Clang: 164,200 comparisons, zero mismatches. Three failures remain: quartic, combining two shifted terms, new structure with large constants. Raising state cap to 60,000 and allowing three rewrites resolved none. These are development fixtures, not an independent real decompiler corpus. Model-relative equivalence only.
+
+Reproduce:
+```sh
+python -m unittest discover -v
+python experiment_structure.py > structure-results.json
+python audit_structure.py
+```
+Per-case measurements: `structure-summary.csv`. Full original JSON logs and regression transcript are included in the V0.9 archive; the scripts regenerate them.
