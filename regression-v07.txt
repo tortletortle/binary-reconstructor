@@ -1,0 +1,30 @@
+test_constant (test_cers.RepairTests.test_constant) ... ok
+test_operator (test_cers.RepairTests.test_operator) ... ok
+test_unique (test_cers.RepairTests.test_unique) ... ok
+test_candidates (test_cers_multi.MultiTests.test_candidates) ... ok
+test_counterexample_feedback (test_cers_multi.MultiTests.test_counterexample_feedback) ... ok
+test_modular (test_cers_multi.MultiTests.test_modular) ... ok
+test_parser (test_cers_multi.MultiTests.test_parser) ... ok
+test_real_repair (test_cers_multi.MultiTests.test_real_repair) ... ok
+test_cfg (test_chrono.Tests.test_cfg) ... ok
+test_equivalent (test_chrono.Tests.test_equivalent) ... ok
+test_missing (test_chrono.Tests.test_missing) ... ok
+test_wrong (test_chrono.Tests.test_wrong) ... ok
+test_backward (test_flow.FlowTests.test_backward) ... ok
+test_cmov (test_flow.FlowTests.test_cmov) ... ok
+test_partial (test_flow.FlowTests.test_partial) ... ok
+test_rotate (test_flow.FlowTests.test_rotate) ... ok
+test_unknown_flags (test_flow.FlowTests.test_unknown_flags) ... ok
+test_unknown_upper (test_flow.FlowTests.test_unknown_upper) ... ok
+test_unsafe_div (test_flow.FlowTests.test_unsafe_div) ... ok
+test_paths (test_paths.Paths.test_paths) ... ok
+test_lift (test_reconstruct.LiftTests.test_lift) ... ok
+test_reject_branch (test_reconstruct.LiftTests.test_reject_branch) ... ok
+test_reject_memory (test_reconstruct.LiftTests.test_reject_memory) ... ok
+test_reject_unknown_register (test_reconstruct.LiftTests.test_reject_unknown_register) ... ok
+test_shift_mask (test_reconstruct.LiftTests.test_shift_mask) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 0.966s
+
+OK
