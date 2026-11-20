@@ -90,6 +90,10 @@ def model(path,prefix,function='transform'):
                 srcw=8 if o[4]=='b' else 16;dstw=32 if o[-1]=='l' else 64
                 if reg(s[0])[1]!=srcw or reg(s[1])[1]!=dstw:raise Unsupported('movzx width')
                 write(s[1],extend(read(s[0],srcw),dstw-srcw));continue
+            if o in ('movsbl','movswl') and len(s)==2:
+                srcw=8 if o=='movsbl' else 16
+                if reg(s[0])[1]!=srcw or reg(s[1])[1]!=32:raise Unsupported('movsx width')
+                write(s[1],f'((_ sign_extend {32-srcw}) {read(s[0],srcw)})');continue
             if o in ('mov','movabs','movabsq'):
                 write(s[1],read(s[0],reg(s[1])[1]));continue
             if o in ('cmp','test'):
