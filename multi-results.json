@@ -1,0 +1,174 @@
+[
+  {
+    "target": "x+1234u",
+    "seed": "x-1233u",
+    "1": {
+      "status": "UNRESOLVED",
+      "evaluated": 21,
+      "pruned": 21,
+      "compiled": 0,
+      "solver_calls": 0,
+      "counterexamples": [],
+      "reason": "candidate search exhausted or budget reached",
+      "seconds": 0.00076
+    },
+    "2": {
+      "status": "VERIFIED",
+      "evaluated": 34,
+      "pruned": 33,
+      "compiled": 1,
+      "solver_calls": 1,
+      "counterexamples": [],
+      "expression": "(x + 1234u)",
+      "seconds": 0.064777
+    }
+  },
+  {
+    "target": "(x*19u)^7u",
+    "seed": "(x*18u)^8u",
+    "1": {
+      "status": "UNRESOLVED",
+      "evaluated": 39,
+      "pruned": 39,
+      "compiled": 0,
+      "solver_calls": 0,
+      "counterexamples": [],
+      "reason": "candidate search exhausted or budget reached",
+      "seconds": 0.000646
+    },
+    "2": {
+      "status": "VERIFIED",
+      "evaluated": 528,
+      "pruned": 527,
+      "compiled": 1,
+      "solver_calls": 1,
+      "counterexamples": [],
+      "expression": "((x * 19u) ^ 7u)",
+      "seconds": 0.046019
+    }
+  },
+  {
+    "target": "(x>>3u)+15u",
+    "seed": "(x>>2u)-15u",
+    "1": {
+      "status": "UNRESOLVED",
+      "evaluated": 36,
+      "pruned": 36,
+      "compiled": 0,
+      "solver_calls": 0,
+      "counterexamples": [],
+      "reason": "candidate search exhausted or budget reached",
+      "seconds": 0.00059
+    },
+    "2": {
+      "status": "VERIFIED",
+      "evaluated": 88,
+      "pruned": 87,
+      "compiled": 1,
+      "solver_calls": 1,
+      "counterexamples": [],
+      "expression": "((x >> (3u & 31u)) + 15u)",
+      "seconds": 0.046889
+    }
+  },
+  {
+    "target": "(x&31u)+7u",
+    "seed": "(x|31u)+8u",
+    "1": {
+      "status": "UNRESOLVED",
+      "evaluated": 37,
+      "pruned": 37,
+      "compiled": 0,
+      "solver_calls": 0,
+      "counterexamples": [],
+      "reason": "candidate search exhausted or budget reached",
+      "seconds": 0.000589
+    },
+    "2": {
+      "status": "VERIFIED",
+      "evaluated": 366,
+      "pruned": 365,
+      "compiled": 1,
+      "solver_calls": 1,
+      "counterexamples": [],
+      "expression": "((x & 31u) + 7u)",
+      "seconds": 0.053533
+    }
+  },
+  {
+    "target": "x*7u+3u",
+    "seed": "x*7u+2u",
+    "1": {
+      "status": "VERIFIED",
+      "evaluated": 29,
+      "pruned": 28,
+      "compiled": 1,
+      "solver_calls": 1,
+      "counterexamples": [],
+      "expression": "((x * 7u) + 3u)",
+      "seconds": 0.050409
+    },
+    "2": {
+      "status": "VERIFIED",
+      "evaluated": 29,
+      "pruned": 28,
+      "compiled": 1,
+      "solver_calls": 1,
+      "counterexamples": [],
+      "expression": "((x * 7u) + 3u)",
+      "seconds": 0.044716
+    }
+  },
+  {
+    "target": "x+987654u",
+    "seed": "x-2u",
+    "1": {
+      "status": "UNRESOLVED",
+      "evaluated": 18,
+      "pruned": 18,
+      "compiled": 0,
+      "solver_calls": 0,
+      "counterexamples": [],
+      "reason": "candidate search exhausted or budget reached",
+      "seconds": 0.001063
+    },
+    "2": {
+      "status": "UNRESOLVED",
+      "evaluated": 88,
+      "pruned": 88,
+      "compiled": 0,
+      "solver_calls": 0,
+      "counterexamples": [],
+      "reason": "candidate search exhausted or budget reached",
+      "seconds": 0.000345
+    }
+  },
+  {
+    "target": "0u",
+    "seed": "(x&4u)^((x>>1u)&4u)",
+    "1": {
+      "status": "VERIFIED",
+      "evaluated": 37,
+      "pruned": 34,
+      "compiled": 3,
+      "solver_calls": 3,
+      "counterexamples": [
+        8
+      ],
+      "expression": "((x & 4u) ^ ((x * 1u) & 4u))",
+      "seconds": 0.133313
+    },
+    "2": {
+      "status": "VERIFIED",
+      "evaluated": 37,
+      "pruned": 34,
+      "compiled": 3,
+      "solver_calls": 3,
+      "counterexamples": [
+        8
+      ],
+      "expression": "((x & 4u) ^ ((x * 1u) & 4u))",
+      "seconds": 0.124469
+    }
+  }
+]
