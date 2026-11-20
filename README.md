@@ -58,3 +58,19 @@ python external_benchmark.py --out external-results-v011.json
 python ghidra_adapter.py /path/to/trusted-binary transform --headless /path/to/ghidra/support/analyzeHeadless
 ```
 For the baseline, use the same external_benchmark.py with V0.10 sources. Per-case comparison: external-summary-v011.csv. Full baseline/current JSON and regression transcript in the V0.11 archive. Next: real Ghidra smoke test, safe expression extraction and verification, unknown upper-register modeling, then a held-out benchmark with diverse functions.
+
+## V0.12: restricted pseudo-C verification and repair bridge
+
+`pseudo_bridge.py` accepts a single named transform function with one unsigned 32-bit argument and one return expression. It parses a restricted unsigned modular dialect, not full C; literals are normalized to uint32 and only literal initial shift counts 0..31 are accepted. Calls, casts, pointer operations, control flow and unknown signatures are rejected. Raw text is never compiled. The normalized candidate is compiled, compared to the original machine code, and a real SAT counterexample is replayed before invoking CERS. Repair carries the first counterexample into the probe set and recompiles/rechecks the final candidate. UNKNOWN or unsupported verification is not accepted. Explicit trusted-fixture opt-in is mandatory but does not provide a sandbox.
+
+Local Linux x86-64: 61/61 regression tests, including a mocked Ghidra export with real downstream verification. External-origin development pilot: eight Linux UAPI/glibc ELF header implementations compiled using GCC and Clang at -O2, 16 binaries with manually authored Ghidra-style proposals. Six direct model-relative proofs, eight replayed counterexamples subsequently repaired and reverified, two parser rejections of CONCAT11. Cross-compiler native replay of all 14 accepted cases: 57,470 comparisons, no mismatches. No-repair comparison uses initial outcomes, not a separately timed run. The pilot is not an independent blind test, and these proposals are not actual Ghidra output. Real headless execution remains unverified: Ghidra is unavailable locally. No general firmware, arbitrary C, untrusted execution, or LLM support.
+
+Reproduce:
+```sh
+python -m unittest discover -v
+python experiment_bridge.py
+python pseudo_bridge.py /path/to/trusted.so --pseudocode proposal.c --trusted
+# On a machine with Ghidra:
+python pseudo_bridge.py /path/to/trusted.so --headless /path/to/ghidra/support/analyzeHeadless --trusted
+```
+See bridge-summary-v012.csv. Full local result JSON and regression transcript in the V0.12 archive.
