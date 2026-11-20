@@ -63,6 +63,16 @@ def lift_flow(path,function='transform'):
             aa=prior[0]['args'].replace(' ','').split(',');
             if len(aa)!=2 or aa[1]!=args[0] or not aa[0].startswith('$') or not (int(aa[0][1:],0)&0xffffffff):fail('unproved divisor')
             r=read(args[0],32); l=read('%eax',32); lines.append(f'  t = {l} % {r};'); lines.append(f'  rax = {l} / {r};'); lines.append('  rdx = t;');defined.add('rdx');wide.update(('rax','rdx'));flag=False;continue
+        # Register-only byte swap and zero extension (do not change flags).
+        if op in ('bswap','bswapl','bswapq') and len(args)==1:
+            w=reg(args[0])[1]
+            if w not in (32,64) or (op=='bswapl' and w!=32) or (op=='bswapq' and w!=64):fail('bswap width')
+            v=read(args[0],w); n=w//8; parts=[f'((({v} >> {8*i}) & UINT64_C(255)) << {8*(n-1-i)})' for i in range(n)]
+            put(args[0],' | '.join(parts));continue
+        if op in ('movzbl','movzwl','movzbq','movzwq') and len(args)==2:
+            srcw=8 if op[4]=='b' else 16;dstw=32 if op[-1]=='l' else 64
+            if reg(args[0])[1]!=srcw or reg(args[1])[1]!=dstw:fail('movzx width')
+            put(args[1],read(args[0],srcw));continue
         if op in ('mov','movabs','movabsq') and len(args)==2:
             w=reg(args[1])[1];put(args[1],read(args[0],w));continue
         if op in ('xor','or','and','add','sub','imul','shl','shr','rol','ror','sar') and len(args)==2:
