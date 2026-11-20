@@ -79,6 +79,17 @@ def model(path,prefix,function='transform'):
                 if b:e=op('bvadd',e,read(b,64,w==32))
                 if c:e=op('bvadd',e,op('bvmul',read(c,64,w==32),bv(int(scale),64)))
                 write(dst,extract(e,w) if w<64 else e);continue
+            # Byte-swap and zero extension preserve the existing condition flags.
+            if o in ('bswap','bswapl','bswapq') and len(s)==1:
+                w=reg(s[0])[1]
+                if w not in (32,64) or (o=='bswapl' and w!=32) or (o=='bswapq' and w!=64):raise Unsupported('bswap width')
+                v=read(s[0],w);parts=[extract(v,8,8*i) for i in range(w//8)];e=parts[0]
+                for part in parts[1:]:e=op('concat',e,part)
+                write(s[0],e);continue
+            if o in ('movzbl','movzwl','movzbq','movzwq') and len(s)==2:
+                srcw=8 if o[4]=='b' else 16;dstw=32 if o[-1]=='l' else 64
+                if reg(s[0])[1]!=srcw or reg(s[1])[1]!=dstw:raise Unsupported('movzx width')
+                write(s[1],extend(read(s[0],srcw),dstw-srcw));continue
             if o in ('mov','movabs','movabsq'):
                 write(s[1],read(s[0],reg(s[1])[1]));continue
             if o in ('cmp','test'):
