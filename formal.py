@@ -87,7 +87,12 @@ def model(path,prefix,function='transform'):
                 c=condition(o[1:]);pending.append((target,r.copy(),full.copy(),flags,op('and',guard,c)));guard=op('and',guard,op('not',c));continue
             if o in ('movl','addl','subl','andl','orl','xorl','imull','shll','shrl','testl','cmpl','roll','rorl'):o=o[:-1]
             if o == 'rorx' and len(s)==3:
-                if not s[0].startswith('                src,dst=a.rsplit(',',1);w=reg(dst)[1];m=re.fullmatch(r'(-?(?:0x[0-9a-f]+|[0-9]+))?\((%\w+)?(?:,(%\w+),([1248]))?\)',src)
+                if not s[0].startswith('$'):raise Unsupported('rorx immediate')
+                dst=s[2];w=reg(dst)[1];n=int(s[0][1:],0)%w;src=read(s[1],w)
+                e=src if n==0 else f'((_ rotate_right {n}) {src})'
+                write(dst,e);continue
+            if o in ('lea','leal'):
+                src,dst=a.rsplit(',',1);w=reg(dst)[1];m=re.fullmatch(r'(-?(?:0x[0-9a-f]+|[0-9]+))?\((%\w+)?(?:,(%\w+),([1248]))?\)',src)
                 if not m:raise Unsupported('lea')
                 d,b,c,scale=m.groups();e=bv(int(d or '0',0),64)
                 if b:e=op('bvadd',e,read(b,64,w==32))
