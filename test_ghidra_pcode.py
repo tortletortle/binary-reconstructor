@@ -323,5 +323,63 @@ class GhidraPcodeVerificationTests(unittest.TestCase):
         self.assertNotEqual(result["original"], result["candidate"])
 
 
+
+class GhidraCfgLoweringTests(unittest.TestCase):
+    def test_real_shape_branch_transform_path_sensitive_phi(self):
+        summary = validate_export(make_branch_export("branch_transform"))
+        self.assertEqual((summary["block_count"], summary["edge_count"]), (3, 3))
+        self.assertFalse(summary["has_cycles"])
+        self.assertEqual(summary["unsupported_ops"], [])
+        lowered = lower_acyclic_uint32(summary)
+        self.assertEqual(lowered["cfg_paths"], 2)
+        self.assertIn("?", lowered["expression"])
+        with tempfile.TemporaryDirectory() as d:
+            binary = build_branch_original(pathlib.Path(d))
+            result = verify_lowered(binary, "branch_transform", lowered, random_replay=512)
+        self.assertEqual(result["status"], "DIRECT_VERIFIED")
+        self.assertEqual(result["formal"]["status"], "UNSAT")
+        self.assertGreaterEqual(result["native_replay"], 512)
+
+    def test_real_shape_branch_join_with_boolean_compare_and_xor(self):
+        summary = validate_export(make_branch_export("branch_join"))
+        lowered = lower_acyclic_uint32(summary)
+        self.assertEqual(lowered["cfg_paths"], 2)
+        with tempfile.TemporaryDirectory() as d:
+            binary = build_branch_original(pathlib.Path(d))
+            result = verify_lowered(binary, "branch_join", lowered, random_replay=512)
+        self.assertEqual(result["status"], "DIRECT_VERIFIED")
+        self.assertEqual(result["formal"]["status"], "UNSAT")
+        self.assertGreaterEqual(result["native_replay"], 512)
+
+    def test_wrong_phi_input_order_produces_counterexample(self):
+        summary = validate_export(make_branch_export("branch_transform", swap_phi=True))
+        lowered = lower_acyclic_uint32(summary)
+        with tempfile.TemporaryDirectory() as d:
+            binary = build_branch_original(pathlib.Path(d))
+            result = verify_lowered(binary, "branch_transform", lowered, random_replay=32)
+        self.assertEqual(result["status"], "COUNTEREXAMPLE")
+        self.assertEqual(result["formal"]["status"], "SAT")
+        self.assertNotEqual(result["original"], result["candidate"])
+
+    def test_branch_destination_must_match_cfg_successor(self):
+        data = make_branch_export()
+        data["cfg"]["blocks"][0]["ops"][-1]["inputs"][0]["offset_hex"] = "0x402099"
+        with self.assertRaises(UnsupportedPcode):
+            lower_acyclic_uint32(validate_export(data))
+
+    def test_multiple_blocks_without_branch_terminator_rejected(self):
+        data = make_branch_export()
+        data["cfg"]["blocks"][0]["ops"].pop()
+        with self.assertRaises(UnsupportedPcode):
+            lower_acyclic_uint32(validate_export(data))
+
+    def test_comparison_ast_uses_unsigned_uint32_semantics(self):
+        summary = validate_export(make_branch_export())
+        lowered = lower_acyclic_uint32(summary)
+        for x in (0, 9, 10, 0x7fffffff, 0x80000000, 0xffffffff):
+            expected = x + 1 if x < 10 else (x * 2 + 3) & 0xffffffff
+            self.assertEqual(evaluate_pcode_ast(lowered["ast"], x), expected & 0xffffffff)
+
+
 if __name__ == "__main__":
     unittest.main()
