@@ -404,7 +404,8 @@ def evaluate_pcode_ast(node: tuple, x: int) -> int:
     return value & MASK
 
 
-def lower_acyclic_uint32(summary: dict, *, max_paths: int = 64, max_depth: int = 128) -> dict:
+def lower_acyclic_uint32(summary: dict, *, branch_polarities: dict[int, bool] | None = None,
+                          max_paths: int = 64, max_depth: int = 128) -> dict:
     """Lower a bounded acyclic multi-block x86-64 SysV uint32 CFG.
 
     This is path-sensitive symbolic execution over Ghidra HighFunction P-code.
@@ -465,6 +466,21 @@ def lower_acyclic_uint32(summary: dict, *, max_paths: int = 64, max_depth: int =
     if len(roots) != 1:
         raise UnsupportedPcode("CFG must have exactly one entry block")
     entry = roots[0]
+    branch_blocks = sorted(
+        bid for bid, block in by_id.items()
+        if any(op["mnemonic"].upper() == "CBRANCH" for op in block["ops"])
+    )
+    if branch_polarities is None:
+        if branch_blocks:
+            raise UnsupportedPcode(
+                "HighFunction CBRANCH polarity is not exposed by the Java API; "
+                "supply an SMT-verified polarity assignment"
+            )
+        branch_polarities = {}
+    if set(branch_polarities) != set(branch_blocks):
+        raise UnsupportedPcode("branch polarity assignment does not exactly cover CBRANCH blocks")
+    if any(type(value) is not bool for value in branch_polarities.values()):
+        raise UnsupportedPcode("branch polarity values must be booleans")
 
     param_storage_keys = {
         _key(vn) for vn in param["storage"]["varnodes"]
@@ -613,9 +629,15 @@ def lower_acyclic_uint32(summary: dict, *, max_paths: int = 64, max_depth: int =
             if fallthrough is None:
                 raise UnsupportedPcode("CBRANCH has no distinct fallthrough successor")
             condition = value(terminator["inputs"][1], local_env)
-            # Ghidra CBRANCH takes its destination edge when the condition is zero.
-            walk(target, block_id, dict(local_env), guards + [("not", condition)], active_next, depth + 1)
-            walk(fallthrough, block_id, dict(local_env), guards + [condition], active_next, depth + 1)
+            # The native P-code specification takes the target when input1
+            # is true. HighFunction's internal boolean_flip flag is not exposed
+            # by Java PcodeOp, so the caller supplies and proves effective polarity.
+            if branch_polarities[block_id]:
+                target_guard, fallthrough_guard = condition, ("not", condition)
+            else:
+                target_guard, fallthrough_guard = ("not", condition), condition
+            walk(target, block_id, dict(local_env), guards + [target_guard], active_next, depth + 1)
+            walk(fallthrough, block_id, dict(local_env), guards + [fallthrough_guard], active_next, depth + 1)
             return
 
         if terminator is not None and terminator["mnemonic"].upper() == "BRANCH":
@@ -652,4 +674,37 @@ def lower_acyclic_uint32(summary: dict, *, max_paths: int = 64, max_depth: int =
         "pcode_operations": summary["operation_count"],
         "cfg_paths": len(exits),
         "cfg_blocks": summary["block_count"],
+        "branch_polarities": {str(bid): branch_polarities[bid] for bid in branch_blocks},
     }
+
+
+def lower_acyclic_uint32_candidates(summary: dict, *, max_branches: int = 6,
+                                    max_paths: int = 64, max_depth: int = 128) -> list[dict]:
+    """Enumerate effective CBRANCH polarities for later SMT selection.
+
+    Ghidra's C++ decompiler has a boolean_flip flag, but the Java PcodeOp API
+    does not expose it. Enumerating both target polarities and requiring SMT
+    UNSAT against the original binary avoids silently assuming that flag.
+    """
+    from itertools import product
+
+    blocks = summary.get("blocks", [])
+    branch_blocks = sorted(
+        block["id"] for block in blocks
+        if any(op["mnemonic"].upper() == "CBRANCH" for op in block["ops"])
+    )
+    if len(branch_blocks) > max_branches:
+        raise UnsupportedPcode(
+            f"{len(branch_blocks)} CBRANCH operations exceed polarity-search limit {max_branches}"
+        )
+    if not branch_blocks:
+        return [lower_acyclic_uint32(summary, branch_polarities={},
+                                     max_paths=max_paths, max_depth=max_depth)]
+    candidates = []
+    for values in product((False, True), repeat=len(branch_blocks)):
+        assignment = dict(zip(branch_blocks, values))
+        candidates.append(lower_acyclic_uint32(
+            summary, branch_polarities=assignment,
+            max_paths=max_paths, max_depth=max_depth,
+        ))
+    return candidates
