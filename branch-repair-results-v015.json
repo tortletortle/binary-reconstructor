@@ -25,7 +25,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.366914
+    "seconds": 0.372705
   },
   {
     "case": "threshold_off_by_one",
@@ -54,7 +54,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.310875
+    "seconds": 0.395657
   },
   {
     "case": "operator_inclusive",
@@ -79,7 +79,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.145627
+    "seconds": 0.166341
   },
   {
     "case": "operator_inclusive",
@@ -104,7 +104,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.145917
+    "seconds": 0.182302
   },
   {
     "case": "bitmask_polarity",
@@ -128,7 +128,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.084285
+    "seconds": 0.092835
   },
   {
     "case": "bitmask_polarity",
@@ -152,7 +152,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.086054
+    "seconds": 0.244742
   },
   {
     "case": "nested_second_threshold",
@@ -179,7 +179,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.265498
+    "seconds": 0.319522
   },
   {
     "case": "nested_second_threshold",
@@ -211,7 +211,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.574978
+    "seconds": 0.836702
   },
   {
     "case": "local_variable_threshold",
@@ -240,7 +240,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.338941
+    "seconds": 0.372477
   },
   {
     "case": "local_variable_threshold",
@@ -269,7 +269,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.356519
+    "seconds": 0.337378
   },
   {
     "case": "equality_constant",
@@ -294,7 +294,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.154421
+    "seconds": 0.126927
   },
   {
     "case": "equality_constant",
@@ -319,7 +319,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.141893
+    "seconds": 0.14677
   },
   {
     "case": "greater_threshold",
@@ -344,7 +344,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.139508
+    "seconds": 0.147475
   },
   {
     "case": "greater_threshold",
@@ -369,6 +369,6 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.147184
+    "seconds": 0.135249
   }
 ]
