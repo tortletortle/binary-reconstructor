@@ -1,0 +1,23 @@
+ChronoCompiler V0.17 regression report
+
+Command:
+  python -m unittest discover -v
+
+Result:
+  Ran 118 tests
+  OK
+  Final run duration: 6.665 seconds
+
+New V0.17 test modules:
+  test_ghidra_adapter.py: 5 tests
+  test_ghidra_pcode.py: 12 tests
+  test_ghidra_pipeline.py: 3 tests
+
+Existing regression suite:
+  98 existing tests retained and passed
+
+Validation boundaries:
+  - Ghidra Headless launcher is mocked in adapter contract tests.
+  - P-code export JSON is synthetic schema-v1 test data.
+  - P-code lowering and SMT/native comparison use a real locally compiled shared-object fixture.
+  - No real Ghidra distribution was installed; ChronoExport.java has not yet been executed by Ghidra.
