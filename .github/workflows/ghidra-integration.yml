@@ -64,7 +64,7 @@ jobs:
           gcc -O1 -fno-inline -fno-stack-protector -shared -fPIC \
             tests/ghidra/mul_add.c tests/ghidra/branch.c -o build/libchrono_fixture.so
           file build/libchrono_fixture.so
-          nm -D build/libchrono_fixture.so | grep -E ' (mul_add|branch_transform|branch_join)$'
+          nm -D build/libchrono_fixture.so | grep -E ' (mul_add|branch_transform|branch_join|nested_branch|branch_three_way)$'
 
       - name: Run complete regression suite
         run: python -m unittest discover -v
@@ -130,6 +130,28 @@ jobs:
               Path(f"build/{name}-verification.json").write_text(
                   json.dumps(summary, indent=2), encoding="utf-8"
               )
+
+          # Export deeper control-flow fixtures before extending the lowerer.
+          # These are inspection-only gates until their SSA shapes are reviewed.
+          for name in ("nested_branch", "branch_three_way"):
+              result = export(binary, name, timeout=180, decompile_timeout=60)
+              assert result["status"] == "RAW_PSEUDOCODE", result
+              analysis = result["analysis"]
+              summary = {
+                  "function": name,
+                  "block_count": analysis["block_count"],
+                  "edge_count": analysis["edge_count"],
+                  "operation_counts": analysis["operation_counts"],
+                  "has_cycles": analysis["has_cycles"],
+                  "decompiler_c_source": analysis["decompiler_c_source"],
+                  "blocks": analysis["blocks"],
+              }
+              print(json.dumps(summary, indent=2))
+              assert analysis["block_count"] >= 3, summary
+              assert analysis["operation_counts"].get("CBRANCH", 0) >= 2, summary
+              Path(f"build/{name}-ghidra-export.json").write_text(
+                  json.dumps(result["pcode_export"], indent=2), encoding="utf-8"
+              )
           PY
 
       - name: Upload real Ghidra evidence
@@ -143,5 +165,7 @@ jobs:
             build/branch_join-ghidra-export.json
             build/branch_transform-verification.json
             build/branch_join-verification.json
+            build/nested_branch-ghidra-export.json
+            build/branch_three_way-ghidra-export.json
           if-no-files-found: ignore
           retention-days: 30
