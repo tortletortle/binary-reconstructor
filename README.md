@@ -17,7 +17,7 @@ It is **not yet a general-purpose decompiler**. There is no production LLM integ
 
 ## Latest validation
 
-- **118/118** local regression tests passed.
+- **119/119** local regression tests passed.
 - V0.15 single-edit pilot: 14/14 manually authored GCC/Clang fixtures repaired and SMT-verified; 57,652 cross-compiler comparisons, no mismatches.
 - V0.16 multi-edit pilot: 4/4 positive fixtures repaired; 2/2 three-edit negative controls returned UNRESOLVED under a two-edit limit.
 - V0.16: 3,953 candidates generated, 3,930 counterexample-pruned, 23 SMT checks, 19 CEGIS restarts; 16,452 cross-compiler comparisons, no mismatches.
@@ -43,7 +43,7 @@ The CLI requires explicit `--trusted`. **Native compilation and execution are no
 ## Current limitations / next work
 
 - Ghidra's Java exporter has not yet been compiled or run inside an installed Ghidra distribution; real Ghidra-generated JSON/P-code remains unvalidated.
-- V0.17 lowering supports only one basic block, one 32-bit parameter, one 32-bit return, x86-64 SysV `RDI`/`EDI` parameter storage, and a small unsigned arithmetic P-code subset.
+- V0.17 lowering supports only one basic block, one 32-bit parameter, one 32-bit return, x86-64 SysV `RDI`/`EDI` argument and `RAX`/`EAX` return storage, and a small unsigned arithmetic P-code subset.
 - Multi-block branches, loops, memory accesses, pointers, calls, indirect flow, signed extension, and unsupported P-code operations fail closed.
 - The native replay stage currently requires the original function to be dynamically exported from the binary.
 - Branch repair remains limited to at most two atomic comparison-operator or literal edits. It does not repair arbitrary arithmetic, data layout, calling conventions, or types.
