@@ -1,0 +1,7 @@
+case,compiler,max_edits,status,edit_count,single_candidates,multi_candidates,generated,counterexample_pruned,solver_calls,restarts,formal,cross_compiler_tests,cross_compiler_status,seconds
+two_branch_errors,gcc,2,REPAIRED_VERIFIED,2,93,1,94,90,4,3,UNSAT,4113,TESTED_NO_MISMATCH,0.431949
+two_branch_errors,clang,2,REPAIRED_VERIFIED,2,93,2,95,91,4,3,UNSAT,4113,TESTED_NO_MISMATCH,0.406599
+two_edits_one_predicate,gcc,2,REPAIRED_VERIFIED,2,53,41,94,88,6,5,UNSAT,4113,TESTED_NO_MISMATCH,0.391568
+two_edits_one_predicate,clang,2,REPAIRED_VERIFIED,2,40,30,70,67,3,2,UNSAT,4113,TESTED_NO_MISMATCH,0.290267
+three_branch_errors_negative,gcc,2,UNRESOLVED,0,157,1643,1800,1797,3,3,,0,,0.664290
+three_branch_errors_negative,clang,2,UNRESOLVED,0,157,1643,1800,1797,3,3,,0,,0.652721
