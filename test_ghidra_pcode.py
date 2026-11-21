@@ -168,20 +168,25 @@ class GhidraPcodeValidationTests(unittest.TestCase):
 class GhidraPcodeVerificationTests(unittest.TestCase):
     def test_captured_real_ghidra_12_2_export_end_to_end(self):
         root = pathlib.Path(__file__).parent
-        fixture = root / "fixtures" / "ghidra-12.2-chrono-mul-add-v1-raw.json"
-        payload = json.loads(fixture.read_text(encoding="utf-8"))
-        summary = validate_export(payload, expected_function="chrono_mul_add")
-        lowered = lower_linear_uint32(summary)
-        self.assertEqual(lowered["expression"], "((x * 5u) + 3u)")
+        fixtures = (
+            root / "fixtures" / "ghidra-12.2-chrono-mul-add-v1-raw.json",
+            root / "fixtures" / "ghidra-12.2-chrono-mul-add-v2-real.json",
+        )
         with tempfile.TemporaryDirectory() as temp:
             binary = pathlib.Path(temp) / "ghidra_fixture.so"
             source = root / "tests" / "fixtures" / "ghidra_mul_add.c"
             subprocess.run(["gcc", "-g", "-O2", "-fPIC", "-shared", str(source), "-o", str(binary)],
                            check=True, capture_output=True, timeout=10)
-            result = verify_lowered(binary, "chrono_mul_add", lowered, random_replay=512)
-        self.assertEqual(result["status"], "DIRECT_VERIFIED")
-        self.assertEqual(result["formal"]["status"], "UNSAT")
-        self.assertGreaterEqual(result["native_replay"], 512)
+            for fixture in fixtures:
+                payload = json.loads(fixture.read_text(encoding="utf-8"))
+                summary = validate_export(payload, expected_function="chrono_mul_add")
+                self.assertIn(summary["schema_version"], (1, 2))
+                lowered = lower_linear_uint32(summary)
+                self.assertEqual(lowered["expression"], "((x * 5u) + 3u)")
+                result = verify_lowered(binary, "chrono_mul_add", lowered, random_replay=512)
+                self.assertEqual(result["status"], "DIRECT_VERIFIED")
+                self.assertEqual(result["formal"]["status"], "UNSAT")
+                self.assertGreaterEqual(result["native_replay"], 512)
 
     def test_real_binary_pcode_lowering_and_smt_verification(self):
         with tempfile.TemporaryDirectory() as d:
