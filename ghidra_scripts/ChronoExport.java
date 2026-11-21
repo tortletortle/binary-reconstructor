@@ -76,6 +76,15 @@ public class ChronoExport extends GhidraScript {
         b.append(",\"register_name\":").append(q(registerName));
         b.append(",\"high_name\":").append(q(highName));
         b.append(",\"high_type\":").append(q(highType));
+        if (vn instanceof VarnodeAST) {
+            VarnodeAST ast = (VarnodeAST)vn;
+            b.append(",\"varnode_id\":").append(ast.getUniqueId());
+            b.append(",\"def_sequence_address\":").append(q(
+                ast.getDef() == null ? null : ast.getDef().getSeqnum().getTarget().toString()));
+            b.append(",\"is_input\":").append(ast.isInput());
+        } else {
+            b.append(",\"varnode_id\":null,\"def_sequence_address\":null,\"is_input\":null");
+        }
         b.append('}');
     }
 
