@@ -13,10 +13,10 @@ import shutil
 import subprocess
 import tempfile
 
-from cers_multi import MASK, PROBES, evaluate
+from cers_multi import MASK, PROBES
+from ghidra_pcode import UnsupportedPcode, evaluate_pcode_ast, lower_acyclic_uint32
 from formal import compare
 from ghidra_adapter import export
-from ghidra_pcode import UnsupportedPcode, lower_linear_uint32
 
 
 def _load_function(path: pathlib.Path, name: str):
@@ -87,7 +87,7 @@ def verify_lowered(binary, function_name, lowered, *, compiler=None, timeout_ms=
                 return {"status": "UNRESOLVED", "formal": formal, "reason": "SMT model omitted input"}
             original_value = int(original_fn(x)) & MASK
             candidate_value = int(candidate_fn(x)) & MASK
-            expected = evaluate(lowered["ast"], x) & MASK
+            expected = evaluate_pcode_ast(lowered["ast"], x) & MASK
             if original_value == candidate_value or candidate_value != expected:
                 return {"status": "MODEL_MISMATCH", "formal": formal,
                         "input": x, "original": original_value,
@@ -119,7 +119,7 @@ def pipeline(binary, function, *, trusted=False, headless=None, timeout=120,
     if exported["status"] != "RAW_PSEUDOCODE":
         return {"status": exported["status"], "export": exported}
     try:
-        lowered = lower_linear_uint32(exported["analysis"])
+        lowered = lower_acyclic_uint32(exported["analysis"])
     except UnsupportedPcode as exc:
         return {
             "status": "UNSUPPORTED_PCODE",
@@ -139,6 +139,8 @@ def pipeline(binary, function, *, trusted=False, headless=None, timeout=120,
         "binary_sha256": exported["binary_sha256"],
         "ghidra_version": exported["analysis"]["ghidra_version"],
         "pcode_operations": lowered["pcode_operations"],
+        "cfg_paths": lowered.get("cfg_paths", 1),
+        "cfg_blocks": lowered.get("cfg_blocks", exported["analysis"]["block_count"]),
         "expression": lowered["expression"],
         "verification": checked,
         "analysis": {key: exported["analysis"][key] for key in (
