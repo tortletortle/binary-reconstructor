@@ -1,0 +1,13 @@
+ChronoCompiler V0.17 validation environment
+Python 3.13.5
+Linux 6.18.57 x86_64 GNU/Linux
+GCC 14.2.0
+Clang 17.0.0
+GNU objdump (system)
+System Z3 shared library: libz3.so.4
+OpenJDK 21.0.12.1
+Ghidra installation: NOT INSTALLED
+Ghidra 12.2 runtime requirement: Java 25 (official Getting Started documentation)
+P-code validation fixture: synthetic ChronoExport schema-v1 JSON
+Native test binary: locally compiled uint32_t mul_add(uint32_t x)
+Native replay: 24 boundary probes + 4096 seeded pseudorandom uint32 values
