@@ -78,7 +78,7 @@ def run():
                 binary = compile_fixture(work, original_body, compiler)
                 pseudo = 'uint transform(uint x){' + pseudo_body + '}'
                 started = time.perf_counter()
-                result = repair(binary, pseudo, trusted=True, max_candidates=512,
+                result = repair(binary, pseudo, trusted=True, max_edits=1, max_candidates=512,
                                 max_compiled=80, max_seconds=12)
                 elapsed = time.perf_counter() - started
                 row = {'case': name, 'compiler': compiler, 'result': result,
