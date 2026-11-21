@@ -123,7 +123,11 @@ public class ChronoExport extends GhidraScript {
         b.append(",\"signature\":").append(q(function.getPrototypeString(false, true)));
         b.append(",\"calling_convention\":").append(q(function.getCallingConventionName()));
         b.append(",\"return_type\":").append(q(function.getReturnType() == null ? null : function.getReturnType().getName()));
-        b.append(",\"return_size\":").append(function.getReturn() == null ? 0 : function.getReturn().getLength());
+        Parameter returnParameter = function.getReturn();
+        b.append(",\"return_size\":").append(returnParameter == null ? 0 : returnParameter.getLength());
+        b.append(",\"return_storage\":");
+        if (returnParameter == null) b.append("null");
+        else appendStorage(b, returnParameter.getVariableStorage());
         b.append(",\"external\":").append(function.isExternal());
         b.append(",\"thunk\":").append(function.isThunk());
         b.append(",\"parameters\":[");
