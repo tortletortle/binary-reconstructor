@@ -4,7 +4,7 @@ import subprocess
 import tempfile
 import unittest
 
-from ghidra_pcode import ExportValidationError, UnsupportedPcode, lower_linear_uint32, validate_export
+from ghidra_pcode import (ExportValidationError, UnsupportedPcode, evaluate_pcode_ast,\n                          lower_acyclic_uint32, lower_linear_uint32, validate_export)
 from ghidra_pipeline import verify_lowered
 
 
@@ -75,6 +75,135 @@ def make_export(add_constant=3):
             ],
         }]},
     }
+
+
+
+def make_branch_export(name="branch_transform", swap_phi=False):
+    """Synthetic schema-v1 export mirroring the real Ghidra 12.2 CFG fixtures."""
+    data = make_export()
+    data["function"]["name"] = name
+    data["function"]["entry"] = "ram:00402000"
+    data["function"]["parameters"][0]["name"] = "param_1"
+    data["function"]["parameters"][0]["type"] = "uint"
+    data["function"]["parameters"][0]["size"] = 4
+    data["function"]["parameters"][0]["storage"] = {
+        "text": "EDI:4", "varnodes": [vn("register", "register", 0x38, 4, register="EDI")]
+    }
+    data["function"]["return_storage"] = {
+        "text": "EAX:4", "varnodes": [vn("register", "register", 0, 4, register="EAX")]
+    }
+    data["function"]["return_size"] = 4
+
+    def sv(kind, space, offset, size, identity=None, *, register=None, high=None):
+        node = vn(kind, space, offset, size, register=register, high=high)
+        node["varnode_id"] = identity
+        node["def_sequence_address"] = None
+        node["is_input"] = identity == 1
+        return node
+
+    def const(value, size=4):
+        return vn("constant", "const", value, size)
+
+    def op(mnemonic, address, output, inputs):
+        return {
+            "opcode": {
+                "COPY": 1, "CBRANCH": 5, "RETURN": 10, "INT_NOTEQUAL": 12,
+                "INT_LESS": 15, "INT_ADD": 19, "INT_MULT": 32, "INT_AND": 27,
+                "INT_XOR": 26, "MULTIEQUAL": 60,
+            }[mnemonic],
+            "mnemonic": mnemonic,
+            "sequence_address": address,
+            "dead": True,
+            "output": output,
+            "inputs": inputs,
+        }
+
+    x = sv("register", "register", 0x38, 4, 1, register="EDI", high="param_1")
+    target = vn("memory", "ram", 0x402020, 1)
+    zero8 = const(0, 8)
+
+    if name == "branch_transform":
+        add1 = sv("register", "register", 0x10, 4, 2, register="EDX")
+        mul = sv("unique", "unique", 0x1001, 4, 3)
+        default_value = sv("unique", "unique", 0x1002, 4, 4)
+        condition = sv("unique", "unique", 0x1003, 1, 5)
+        default_copy = sv("unique", "unique", 0x1004, 4, 6)
+        then_copy = sv("unique", "unique", 0x1005, 4, 7)
+        phi = sv("unique", "unique", 0x1006, 4, 8)
+        returned = sv("register", "register", 0, 4, 9, register="EAX")
+        block0_ops = [
+            op("INT_ADD", "00402000", add1, [x, const(1)]),
+            op("INT_MULT", "00402003", mul, [x, const(2)]),
+            op("INT_ADD", "00402006", default_value, [mul, const(3)]),
+            op("INT_LESS", "00402009", condition, [x, const(10)]),
+            op("COPY", "0040200c", default_copy, [default_value]),
+            op("CBRANCH", "0040200f", None, [target, condition]),
+        ]
+        block1_ops = [op("COPY", "00402010", then_copy, [add1])]
+        phi_inputs = [default_copy, then_copy]
+        if swap_phi:
+            phi_inputs.reverse()
+        block2_ops = [
+            op("MULTIEQUAL", "00402020", phi, phi_inputs),
+            op("COPY", "00402023", returned, [phi]),
+            op("RETURN", "00402026", None, [zero8, returned]),
+        ]
+        c_source = "uint branch_transform(uint x){return x < 10u ? x + 1u : x * 2u + 3u;}"
+    elif name == "branch_join":
+        mul = sv("unique", "unique", 0x2001, 4, 11)
+        add = sv("register", "register", 0, 4, 12, register="EAX")
+        masked = sv("unique", "unique", 0x2002, 4, 13)
+        condition = sv("register", "register", 0x206, 1, 14, register="ZF")
+        default_copy = sv("unique", "unique", 0x2003, 4, 15)
+        then_copy = sv("unique", "unique", 0x2004, 4, 16)
+        phi = sv("register", "register", 0, 4, 17, register="EAX")
+        xor_value = sv("register", "register", 0, 4, 18, register="EAX")
+        returned = sv("register", "register", 0, 4, 19, register="EAX")
+        block0_ops = [
+            op("INT_MULT", "00402000", mul, [x, const(3)]),
+            op("INT_ADD", "00402003", add, [x, const(7)]),
+            op("INT_AND", "00402006", masked, [x, const(1)]),
+            op("INT_NOTEQUAL", "00402009", condition, [masked, const(0)]),
+            op("COPY", "0040200c", default_copy, [add]),
+            op("CBRANCH", "0040200f", None, [target, condition]),
+        ]
+        block1_ops = [op("COPY", "00402010", then_copy, [mul])]
+        phi_inputs = [default_copy, then_copy]
+        if swap_phi:
+            phi_inputs.reverse()
+        block2_ops = [
+            op("MULTIEQUAL", "00402020", phi, phi_inputs),
+            op("INT_XOR", "00402023", xor_value, [phi, const(0x55)]),
+            op("COPY", "00402026", returned, [xor_value]),
+            op("RETURN", "00402029", None, [zero8, returned]),
+        ]
+        c_source = "uint branch_join(uint x){return ((x & 1u) != 0u) ? x * 3u ^ 0x55u : (x + 7u) ^ 0x55u;}"
+    else:
+        raise ValueError("unknown branch fixture")
+
+    data["decompilation"]["c_source"] = c_source
+    data["cfg"]["blocks"] = [
+        {"id": 0, "start": "00402000", "stop": "0040200f",
+         "predecessors": [], "successors": [2, 1], "ops": block0_ops},
+        {"id": 1, "start": "00402010", "stop": "00402010",
+         "predecessors": [0], "successors": [2], "ops": block1_ops},
+        {"id": 2, "start": "00402020", "stop": "00402029",
+         "predecessors": [0, 1], "successors": [], "ops": block2_ops},
+    ]
+    return data
+
+
+def build_branch_original(root):
+    source = root / "branches.c"
+    output = root / "branches.so"
+    source.write_text(
+        "#include <stdint.h>\\n"
+        "uint32_t branch_transform(uint32_t x){if(x<10u)return x+1u;return x*2u+3u;}\\n"
+        "uint32_t branch_join(uint32_t x){uint32_t y;if((x&1u)==0u)y=x+7u;else y=x*3u;return y^0x55u;}\\n"
+    )
+    subprocess.run(["gcc", "-O1", "-fno-inline", "-shared", "-fPIC", str(source), "-o", str(output)],
+                   check=True, capture_output=True, timeout=10)
+    return output
 
 
 def build_original(root):
