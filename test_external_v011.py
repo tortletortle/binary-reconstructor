@@ -36,7 +36,7 @@ class InstructionTests(unittest.TestCase):
             self.assertEqual(good_result['status'],'UNSAT',msg=f'good comparison failed: {good_result!r}')
             self.assertEqual(bad_result['status'],'SAT',msg=f'wrong comparison failed: {bad_result!r}')
             src=root/'lift.c';src.write_text(lift_flow(original)['code']);out=root/'lift.so';subprocess.run(['gcc','-O2','-shared','-fPIC',str(src),'-o',str(out)],check=True)
-            self.assertEqual(compare(original,out)['status'],'UNSAT')
+            lifted_result=compare(original,out);self.assertEqual(lifted_result['status'],'UNSAT',msg=f'lifted-code comparison failed: {lifted_result!r}')
     def test_bswap(self):
         self.check('mov %edi,%eax\nbswap %eax\nret','mov %edi,%eax\nbswap %eax\nret','mov %edi,%eax\nret')
     def test_movzx(self):
