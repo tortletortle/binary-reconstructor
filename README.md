@@ -1,10 +1,10 @@
 # ChronoCompiler / 时光倒流编译器
 
-**Current development branch: V0.18 — real Ghidra 12.2 integration gate.**
+**Current development branch: V0.18 — real Ghidra 12.2 integration accepted for the narrow supported subset.**
 
-ChronoCompiler is an experimental binary reverse-engineering assistant. Its verified core currently targets trusted Linux x86-64 SysV functions with one unsigned 32-bit input and one unsigned 32-bit return. The project combines restricted decompiler-style parsing, CFG/path analysis, expression lifting, candidate recompilation, native counterexample replay, and SMT-based equivalence checking.
+ChronoCompiler is an experimental binary reverse-engineering assistant. Its currently verified core targets trusted Linux x86-64 SysV functions with one unsigned 32-bit input and one unsigned 32-bit return. The project combines restricted decompiler-style parsing, CFG/path analysis, expression lifting, candidate recompilation, native counterexample replay, and SMT-based equivalence checking.
 
-It is **not yet a general-purpose decompiler**. There is no production LLM integration, no arbitrary firmware support, and no completed real-Ghidra end-to-end acceptance. V0.18 adds a pinned Ghidra 12.2 Headless CI workflow; its real runtime result is pending.
+It is **not yet a general-purpose decompiler**. There is no production LLM integration and no arbitrary firmware support. V0.18 proves a real Ghidra 12.2 Headless export-to-P-code-to-SMT/native path for a controlled single-block function.
 
 ## Current pipeline
 
@@ -13,18 +13,21 @@ It is **not yet a general-purpose decompiler**. There is no production LLM integ
 3. **Candidate generation** — C source generation and native compilation.
 4. **Verification** — a deliberately restricted x86-64 machine-code model, Z3 bit-vector equivalence checking, and native replay of concrete SAT counterexamples.
 5. **Branch repair** — V0.15 single-edit and V0.16 ranked one/two-edit CEGIS search over branch comparison operators and integer literals.
-6. **Ghidra P-code bridge (V0.17)** — structured export of decompiler C, function metadata, HighFunction P-code, and CFG; a fail-closed one-block uint32 subset can be lowered and checked against the original named function.
-7. **Real Ghidra integration gate (V0.18)** — pinned Ghidra 12.2 release, Java 25, actual Headless Analyzer launch, real P-code export, and SMT/native smoke test in GitHub Actions.
+6. **Ghidra P-code bridge (V0.17/V0.18)** — structured C/P-code/CFG export, Ghidra 12.2 Headless integration, schema-v2 validation, and narrow P-code lowering.
+7. **Real verification gate** — Ghidra-generated P-code is lowered to a candidate, compared with the original binary using SMT, and checked with native replay.
 
-## Latest local validation
+## Latest validation
 
-- **122/122** local regression tests passed in Python 3.13.5.
-- The V0.18 native ELF fixture compiled and exported the expected chrono_mul_add symbol.
-- Fixture disassembly was inspected and six additional native boundary values passed.
-- The V0.18 workflow YAML parsed successfully.
-- **Real Ghidra 12.2 execution is pending.** The development environment has Java 21 and no Ghidra installation; no successful real exporter run is claimed yet.
+- **124/124** Python regression tests passed in GitHub Actions.
+- Official Ghidra 12.2 ran under Java 25.0.5.
+- The Java exporter compiled and executed in Headless Analyzer.
+- Real P-code export contained INT_MULT, INT_ADD, COPY, and RETURN.
+- Lowered expression: ((x * 5u) + 3u).
+- SMT result: **UNSAT**.
+- Native replay: **4,120 inputs passed**.
+- [Successful integration workflow](https://github.com/tortletortle/binary-reconstructor/actions/runs/44882512625).
 
-Earlier V0.15/V0.16/V0.17 results are small development-fixture experiments, not an independent blind corpus or firmware results. SMT UNSAT is relative to the current supported machine-code model; unsupported instructions and solver UNKNOWN are not proof.
+This is a narrow single-basic-block uint32 acceptance result, not a claim of general firmware reconstruction. See V0.18-Real-Ghidra-Integration.md for the exact evidence and limitations.
 
 ## Run locally
 
@@ -45,13 +48,12 @@ See [V0.18 real integration report](V0.18-Real-Ghidra-Integration.md). The workf
 
 ## Current limitations / next work
 
-- Real Ghidra Java compilation and Headless execution must pass before the integration is considered accepted.
-- V0.17 lowering supports only one basic block, one 32-bit parameter, one 32-bit return, x86-64 SysV RDI/EDI argument and RAX/EAX return storage, and a small unsigned arithmetic P-code subset.
+- V0.18 lowering supports only one basic block, one 32-bit parameter, one 32-bit return, x86-64 SysV RDI/EDI argument and RAX/EAX return storage, and a small unsigned arithmetic P-code subset.
 - Multi-block branches, loops, memory accesses, pointers, calls, indirect flow, signed extension, and unsupported P-code operations fail closed.
 - The native replay stage currently requires a loadable ELF shared object and a dynamically exported target function symbol.
 - Branch repair remains limited to at most two atomic comparison-operator or literal edits. It does not repair arbitrary arithmetic, data layout, calling conventions, or types.
 - Candidate literal neighborhoods and per-branch option ranking are heuristic; search is incomplete and budget-bounded.
-- x86 flag and instruction semantics are incomplete; unsupported machine instructions fail closed.
+- x86 flag and instruction semantics are incomplete; unsupported machine instructions fail closed. The verifier now models the BMI2 RORX instruction for immediate rotate cases.
 - There is no untrusted-code sandbox and no production LLM integration.
 
 ## Version milestones
@@ -63,4 +65,4 @@ See [V0.18 real integration report](V0.18-Real-Ghidra-Integration.md). The workf
 - **V0.15** — single-edit counterexample-guided branch-predicate repair.
 - **V0.16** — ranked one/two-edit branch repair across multiple predicates or multiple sites within one predicate.
 - **V0.17** — structured Ghidra C/P-code/CFG export and narrow P-code lowering prototype.
-- **V0.18** — pinned real-Ghidra CI integration gate; runtime acceptance pending.
+- **V0.18** — real Ghidra 12.2 Headless integration, schema-v2 P-code handling, and verified single-block uint32 reconstruction path.
