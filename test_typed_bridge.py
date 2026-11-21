@@ -24,8 +24,8 @@ class TypedBridgeTests(unittest.TestCase):
         with self.assertRaises(ValueError):extract_typed(code('uint a=x;'+'a=a+a;'*8+'return a;'))
     def test_binary(self):
         with tempfile.TemporaryDirectory() as d:
-            p=pathlib.Path(d)/'target.c';o=p.with_suffix('.so');p.write_text('#include <stdint.h>\nuint32_t transform(uint32_t x){return __builtin_bswap16(x);}\n')
-            subprocess.run(['gcc','-O2','-shared','-fPIC',str(p),'-o',str(o)],check=True)
+            from test_reconstruct import LiftTests
+            o=LiftTests().binary(d,'mov %edi,%eax\nrol $8,%ax\nmovzwl %ax,%eax\nret')
             r=typed_pipeline(o,code('byte lo=SUB41(x,0);byte hi=SUB41(x,1);return CONCAT11(lo,hi);'),trusted=True)
             self.assertEqual(r['status'],'DIRECT_VERIFIED',msg=f'typed pipeline result: {r!r}')
     def test_repair(self):
