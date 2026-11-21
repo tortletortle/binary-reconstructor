@@ -1,0 +1,11 @@
+ChronoCompiler V0.15 benchmark environment
+Python 3.13.5
+GCC 14.2.0 (Debian 14.2.0-19)
+Clang 17.0.0
+Linux 6.18.57 x86_64 GNU/Linux
+Z3 shared library: libz3.so.4
+Compiler flags: -O2 -shared -fPIC
+Fixture ABI: x86-64 SysV, uint32_t transform(uint32_t)
+Random replay seed base: 5500, per-case deterministic seed 5500 + case index
+Fixed replay probes: 22
+Random replay probes: 4096 per candidate
