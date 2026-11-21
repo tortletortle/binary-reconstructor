@@ -148,5 +148,7 @@ jobs:
             build/branch_join-verification.json
             build/nested_branch-ghidra-export.json
             build/branch_three_way-ghidra-export.json
+            build/nested_branch-verification.json
+            build/branch_three_way-verification.json
           if-no-files-found: ignore
           retention-days: 30
