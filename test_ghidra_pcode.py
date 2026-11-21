@@ -106,6 +106,13 @@ class GhidraPcodeValidationTests(unittest.TestCase):
         with self.assertRaises(ExportValidationError):
             validate_export(make_export(), expected_function="other")
 
+    def test_syntax_tree_pcode_is_lowered_even_when_ghidra_marks_ops_dead(self):
+        data = make_export()
+        for op in data["cfg"]["blocks"][0]["ops"]:
+            op["dead"] = True
+        lowered = lower_linear_uint32(validate_export(data))
+        self.assertEqual(lowered["expression"], "((x * 5u) + 3u)")
+
     def test_schema_version_rejected(self):
         data = make_export()
         data["schema_version"] = 99
