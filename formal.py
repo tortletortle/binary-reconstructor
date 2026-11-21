@@ -160,9 +160,14 @@ def model(path,prefix,function='transform'):
     for guard,value in reversed(exits[:-1]):result=op('ite',guard,value,result)
     return defs,result
 
-def compare(original,candidate,timeout_ms=3000):
+def compare(original,candidate,timeout_ms=3000,original_function='transform',candidate_function='transform'):
+    """Compare two functions using the restricted x86-64 bit-vector model.
+
+    Optional function names let Ghidra-driven verification compare an
+    arbitrary named source function against a generated transform candidate.
+    """
     try:
-        a,ra=model(original,'a');b,rb=model(candidate,'b')
+        a,ra=model(original,'a',original_function);b,rb=model(candidate,'b',candidate_function)
     except (Unsupported,ValueError,IndexError) as e:return {'status':'UNSUPPORTED','reason':str(e)}
     script='\n'.join(['(set-option :timeout '+str(int(timeout_ms))+')','(declare-const x (_ BitVec 32))',*a,*b,f'(assert (distinct {ra} {rb}))','(check-sat)'])
     return solve(script)
