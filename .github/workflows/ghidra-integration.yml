@@ -1,0 +1,95 @@
+name: Real Ghidra integration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ghidra_*.py"
+      - "ghidra_scripts/**"
+      - "tests/ghidra/**"
+      - ".github/workflows/ghidra-integration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ghidra-integration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ghidra-12-2:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: ""
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install native verification dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc binutils libz3-4 unzip
+
+      - name: Download official Ghidra 12.2 release
+        run: |
+          curl --fail --location --retry 3 \
+            https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.2_build/ghidra_12.2_PUBLIC_20261016.zip \
+            --output "${{ runner.temp }}/ghidra.zip"
+          mkdir -p "${{ runner.temp }}/ghidra"
+          unzip -q "${{ runner.temp }}/ghidra.zip" -d "${{ runner.temp }}/ghidra"
+          echo "GHIDRA_INSTALL_DIR=$(find "${{ runner.temp }}/ghidra" -mindepth 1 -maxdepth 1 -type d | head -n 1)" >> "$GITHUB_ENV"
+
+      - name: Confirm runtime
+        run: |
+          java -version
+          python --version
+          "${GHIDRA_INSTALL_DIR}/support/analyzeHeadless" -help >/dev/null
+
+      - name: Build a trusted ELF fixture
+        run: |
+          mkdir -p build
+          gcc -O1 -fno-inline -fno-stack-protector -shared -fPIC \
+            tests/ghidra/mul_add.c -o build/libchrono_fixture.so
+          file build/libchrono_fixture.so
+          nm -D build/libchrono_fixture.so | grep ' mul_add$'
+
+      - name: Run complete regression suite
+        run: python -m unittest discover -v
+
+      - name: Run real Ghidra export and formal verification
+        env:
+          GHIDRA_INSTALL_DIR: ${{ runner.temp }}/ghidra/ghidra_12.2_PUBLIC
+        run: |
+          python ghidra_pipeline.py build/libchrono_fixture.so mul_add --trusted \
+            --timeout 180 --decompile-timeout 60 --random-replay 4096 \
+            | tee build/real-ghidra-result.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path("build/real-ghidra-result.json").read_text())
+          print(json.dumps(result, indent=2))
+          assert result["status"] == "DIRECT_VERIFIED", result
+          assert result["verification"]["formal"]["status"] == "UNSAT", result
+          assert result["verification"]["native_replay"] >= 4096, result
+          PY
+
+      - name: Upload real Ghidra evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-ghidra-v0.18-evidence
+          path: |
+            build/real-ghidra-result.json
+          if-no-files-found: ignore
+          retention-days: 30
