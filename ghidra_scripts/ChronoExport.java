@@ -56,7 +56,7 @@ public class ChronoExport extends GhidraScript {
         String highType = null;
         String registerName = null;
         if (vn.isRegister()) {
-            Register register = currentProgram.getLanguage().getRegister(vn.getAddress(), vn.getSize());
+            Register register = currentProgram.getLanguage().getRegister(vn.getAddress().getAddressSpace(), vn.getOffset(), vn.getSize());
             if (register != null) registerName = register.getName();
         }
         if (vn instanceof VarnodeAST) {
