@@ -12,20 +12,18 @@
     "counterexamples": [
       10,
       11,
-      2863311530,
-      7,
-      9
+      2863311530
     ],
-    "generated": 15,
-    "counterexample_pruned": 10,
-    "solver_calls": 5,
-    "restarts": 4,
+    "generated": 3,
+    "counterexample_pruned": 0,
+    "solver_calls": 3,
+    "restarts": 2,
     "formal": "UNSAT",
     "cross_compiler": {
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.372705
+    "seconds": 0.264814
   },
   {
     "case": "threshold_off_by_one",
@@ -39,22 +37,18 @@
     },
     "counterexamples": [
       10,
-      5,
-      6,
-      7,
-      8,
-      9
+      5
     ],
-    "generated": 16,
-    "counterexample_pruned": 10,
-    "solver_calls": 6,
-    "restarts": 5,
+    "generated": 2,
+    "counterexample_pruned": 0,
+    "solver_calls": 2,
+    "restarts": 1,
     "formal": "UNSAT",
     "cross_compiler": {
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.395657
+    "seconds": 0.152915
   },
   {
     "case": "operator_inclusive",
@@ -70,8 +64,8 @@
       10,
       263162
     ],
-    "generated": 3,
-    "counterexample_pruned": 1,
+    "generated": 2,
+    "counterexample_pruned": 0,
     "solver_calls": 2,
     "restarts": 1,
     "formal": "UNSAT",
@@ -79,7 +73,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.166341
+    "seconds": 0.195742
   },
   {
     "case": "operator_inclusive",
@@ -95,8 +89,8 @@
       10,
       4294967292
     ],
-    "generated": 3,
-    "counterexample_pruned": 1,
+    "generated": 2,
+    "counterexample_pruned": 0,
     "solver_calls": 2,
     "restarts": 1,
     "formal": "UNSAT",
@@ -104,7 +98,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.182302
+    "seconds": 0.180031
   },
   {
     "case": "bitmask_polarity",
@@ -128,7 +122,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.092835
+    "seconds": 0.097913
   },
   {
     "case": "bitmask_polarity",
@@ -152,7 +146,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.244742
+    "seconds": 0.100476
   },
   {
     "case": "nested_second_threshold",
@@ -166,20 +160,18 @@
     },
     "counterexamples": [
       100,
-      45,
-      87,
-      99
+      45
     ],
-    "generated": 82,
-    "counterexample_pruned": 78,
-    "solver_calls": 4,
-    "restarts": 3,
+    "generated": 47,
+    "counterexample_pruned": 45,
+    "solver_calls": 2,
+    "restarts": 1,
     "formal": "UNSAT",
     "cross_compiler": {
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.319522
+    "seconds": 0.249456
   },
   {
     "case": "nested_second_threshold",
@@ -194,24 +186,18 @@
     "counterexamples": [
       100,
       101,
-      2147483654,
-      40,
-      42,
-      74,
-      90,
-      98,
-      99
+      2147483654
     ],
-    "generated": 104,
-    "counterexample_pruned": 95,
-    "solver_calls": 9,
-    "restarts": 8,
+    "generated": 49,
+    "counterexample_pruned": 46,
+    "solver_calls": 3,
+    "restarts": 2,
     "formal": "UNSAT",
     "cross_compiler": {
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.836702
+    "seconds": 0.233076
   },
   {
     "case": "local_variable_threshold",
@@ -226,21 +212,19 @@
     "counterexamples": [
       10,
       4294967295,
-      2,
-      6,
       8,
       9
     ],
-    "generated": 18,
-    "counterexample_pruned": 12,
-    "solver_calls": 6,
-    "restarts": 5,
+    "generated": 4,
+    "counterexample_pruned": 0,
+    "solver_calls": 4,
+    "restarts": 3,
     "formal": "UNSAT",
     "cross_compiler": {
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.372477
+    "seconds": 0.319238
   },
   {
     "case": "local_variable_threshold",
@@ -255,21 +239,19 @@
     "counterexamples": [
       10,
       4294967295,
-      2,
-      6,
       8,
       9
     ],
-    "generated": 18,
-    "counterexample_pruned": 12,
-    "solver_calls": 6,
-    "restarts": 5,
+    "generated": 4,
+    "counterexample_pruned": 0,
+    "solver_calls": 4,
+    "restarts": 3,
     "formal": "UNSAT",
     "cross_compiler": {
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.337378
+    "seconds": 0.240398
   },
   {
     "case": "equality_constant",
@@ -285,8 +267,8 @@
       123,
       65
     ],
-    "generated": 23,
-    "counterexample_pruned": 21,
+    "generated": 2,
+    "counterexample_pruned": 0,
     "solver_calls": 2,
     "restarts": 1,
     "formal": "UNSAT",
@@ -294,7 +276,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.126927
+    "seconds": 0.134167
   },
   {
     "case": "equality_constant",
@@ -310,8 +292,8 @@
       123,
       65
     ],
-    "generated": 23,
-    "counterexample_pruned": 21,
+    "generated": 2,
+    "counterexample_pruned": 0,
     "solver_calls": 2,
     "restarts": 1,
     "formal": "UNSAT",
@@ -319,7 +301,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.14677
+    "seconds": 0.143694
   },
   {
     "case": "greater_threshold",
@@ -333,10 +315,10 @@
     },
     "counterexamples": [
       501,
-      2147483648
+      2147142987
     ],
-    "generated": 5,
-    "counterexample_pruned": 3,
+    "generated": 2,
+    "counterexample_pruned": 0,
     "solver_calls": 2,
     "restarts": 1,
     "formal": "UNSAT",
@@ -344,7 +326,7 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.147475
+    "seconds": 0.181529
   },
   {
     "case": "greater_threshold",
@@ -358,10 +340,10 @@
     },
     "counterexamples": [
       501,
-      2147483648
+      2147142987
     ],
-    "generated": 5,
-    "counterexample_pruned": 3,
+    "generated": 2,
+    "counterexample_pruned": 0,
     "solver_calls": 2,
     "restarts": 1,
     "formal": "UNSAT",
@@ -369,6 +351,6 @@
       "tests": 4118,
       "status": "TESTED_NO_MISMATCH"
     },
-    "seconds": 0.135249
+    "seconds": 0.186526
   }
 ]
