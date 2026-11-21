@@ -1,5 +1,5 @@
 """Independent, deliberately restricted machine-code equivalence checker.
-Only trusted x86-64 SysV pure uint32 -> uint32 functions, straight line.
+Only trusted x86-64 SysV pure uint32 -> uint32 functions with bounded acyclic control flow.
 """
 import ctypes as C, ctypes.util, re
 from chrono import analyze
@@ -45,11 +45,25 @@ def model(path,prefix,function='transform'):
             e=parts[0]
             for p in parts[1:]:e=op('concat',e,p)
         name=f'{prefix}_{len(defs)}';defs.append(f'(define-fun {name} () (_ BitVec 64) {e})');r[b]=name
+    def signbit(e,w):
+        return op('=',extract(e,1,w-1),bv(1,1))
+    def different(a,b):
+        return op('not',op('=',a,b))
     def condition(c):
         if flags is None:raise Unsupported('flags')
-        z,carry=flags
-        table={'e':z,'z':z,'ne':op('not',z),'nz':op('not',z),'b':carry,'ae':op('not',carry),'a':op('and',op('not',carry),op('not',z)),'be':op('or',carry,z)}
-        if c not in table:raise Unsupported('condition '+c)
+        z,carry,sign,overflow=flags
+        table={'e':z,'z':z,'ne':op('not',z),'nz':op('not',z),
+               'b':carry,'nae':carry,'c':carry,'ae':None if carry is None else op('not',carry),
+               'nb':None if carry is None else op('not',carry),'nc':None if carry is None else op('not',carry),
+               'a':None if carry is None else op('and',op('not',carry),op('not',z)),
+               'nbe':None if carry is None else op('and',op('not',carry),op('not',z)),
+               'be':None if carry is None else op('or',carry,z),'na':None if carry is None else op('or',carry,z),
+               's':sign,'ns':None if sign is None else op('not',sign),
+               'l':None if sign is None or overflow is None else different(sign,overflow),
+               'ge':None if sign is None or overflow is None else op('not',different(sign,overflow)),
+               'g':None if z is None or sign is None or overflow is None else op('and',op('not',z),op('not',different(sign,overflow))),
+               'le':None if z is None or sign is None or overflow is None else op('or',z,different(sign,overflow))}
+        if c not in table or table[c] is None:raise Unsupported('condition '+c)
         return table[c]
     while pending:
         pc,r,full,flags,guard=pending.pop()
@@ -97,7 +111,14 @@ def model(path,prefix,function='transform'):
             if o in ('mov','movabs','movabsq'):
                 write(s[1],read(s[0],reg(s[1])[1]));continue
             if o in ('cmp','test'):
-                w=reg(s[1])[1];l=read(s[1],w);rr=read(s[0],w);flags=(op('=',op('bvand',l,rr),bv(0,w)),'false') if o=='test' else (op('=',l,rr),op('bvult',l,rr));continue
+                w=reg(s[1])[1];l=read(s[1],w);rr=read(s[0],w)
+                if o=='test':
+                    e=op('bvand',l,rr);flags=(op('=',e,bv(0,w)),'false',signbit(e,w),'false')
+                else:
+                    e=op('bvsub',l,rr);sl=signbit(l,w);sr=signbit(rr,w);se=signbit(e,w)
+                    overflow=op('and',different(sl,sr),different(sl,se))
+                    flags=(op('=',l,rr),op('bvult',l,rr),se,overflow)
+                continue
             if o.startswith('cmov'):
                 w=reg(s[1])[1];write(s[1],op('ite',condition(o[4:]),read(s[0],w),read(s[1],w)));continue
             if o in ('add','sub','xor','or','and','imul','shl','shr','sar','rol','ror','not','neg','inc','dec'):
@@ -113,7 +134,26 @@ def model(path,prefix,function='transform'):
                     else:e=op(mapping[o],l,bv(n,w))
                 elif o in ('not','neg'):e=op('bvnot' if o=='not' else 'bvneg',l)
                 else:e=op(mapping[o],l,rr)
-                write(dst,e);flags=(op('=',e,bv(0,w)),'false') if o in ('xor','or','and') else None;continue
+                write(dst,e)
+                if o in ('xor','or','and'):
+                    flags=(op('=',e,bv(0,w)),'false',signbit(e,w),'false')
+                elif o in ('add','sub'):
+                    sl=signbit(l,w);sr=signbit(rr,w);se=signbit(e,w)
+                    carry=op('bvult',e,l) if o=='add' else op('bvult',l,rr)
+                    overflow=op('and',op('not',different(sl,sr)),different(sl,se)) if o=='add' else op('and',different(sl,sr),different(sl,se))
+                    flags=(op('=',e,bv(0,w)),carry,se,overflow)
+                elif o in ('inc','dec'):
+                    sl=signbit(l,w);se=signbit(e,w)
+                    carry=flags[1] if flags is not None else None
+                    overflow=op('and',op('not',sl),se) if o=='inc' else op('and',sl,op('not',se))
+                    flags=(op('=',e,bv(0,w)),carry,se,overflow)
+                elif o=='neg':
+                    flags=(op('=',e,bv(0,w)),different(l,bv(0,w)),signbit(e,w),op('=',l,bv(1<<(w-1),w)))
+                elif o=='not':
+                    pass  # NOT preserves all condition flags.
+                else:
+                    flags=None
+                continue
             raise Unsupported('instruction '+o)
     if not exits:raise Unsupported('no return')
     result=exits[-1][1]
