@@ -1,0 +1,374 @@
+[
+  {
+    "case": "threshold_off_by_one",
+    "compiler": "gcc",
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutation": {
+      "kind": "constant",
+      "old": 11,
+      "new": 10
+    },
+    "counterexamples": [
+      10,
+      11,
+      2863311530,
+      7,
+      9
+    ],
+    "generated": 15,
+    "counterexample_pruned": 10,
+    "solver_calls": 5,
+    "restarts": 4,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "tests": 4118,
+      "status": "TESTED_NO_MISMATCH"
+    },
+    "seconds": 0.366914
+  },
+  {
+    "case": "threshold_off_by_one",
+    "compiler": "clang",
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutation": {
+      "kind": "constant",
+      "old": 11,
+      "new": 10
+    },
+    "counterexamples": [
+      10,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "generated": 16,
+    "counterexample_pruned": 10,
+    "solver_calls": 6,
+    "restarts": 5,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "tests": 4118,
+      "status": "TESTED_NO_MISMATCH"
+    },
+    "seconds": 0.310875
+  },
+  {
+    "case": "operator_inclusive",
+    "compiler": "gcc",
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutation": {
+      "kind": "operator",
+      "old": "<=",
+      "new": "<"
+    },
+    "counterexamples": [
+      10,
+      263162
+    ],
+    "generated": 3,
+    "counterexample_pruned": 1,
+    "solver_calls": 2,
+    "restarts": 1,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "tests": 4118,
+      "status": "TESTED_NO_MISMATCH"
+    },
+    "seconds": 0.145627
+  },
+  {
+    "case": "operator_inclusive",
+    "compiler": "clang",
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutation": {
+      "kind": "operator",
+      "old": "<=",
+      "new": "<"
+    },
+    "counterexamples": [
+      10,
+      4294967292
+    ],
+    "generated": 3,
+    "counterexample_pruned": 1,
+    "solver_calls": 2,
+    "restarts": 1,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "tests": 4118,
+      "status": "TESTED_NO_MISMATCH"
+    },
+    "seconds": 0.145917
+  },
+  {
+    "case": "bitmask_polarity",
+    "compiler": "gcc",
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutation": {
+      "kind": "operator",
+      "old": "==",
+      "new": "!="
+    },
+    "counterexamples": [
+      0
+    ],
+    "generated": 1,
+    "counterexample_pruned": 0,
+    "solver_calls": 1,
+    "restarts": 0,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "tests": 4118,
+      "status": "TESTED_NO_MISMATCH"
+    },
+    "seconds": 0.084285
+  },
+  {
+    "case": "bitmask_polarity",
+    "compiler": "clang",
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutation": {
+      "kind": "operator",
+      "old": "==",
+      "new": "!="
+    },
+    "counterexamples": [
+      0
+    ],
+    "generated": 1,
+    "counterexample_pruned": 0,
+    "solver_calls": 1,
+    "restarts": 0,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "tests": 4118,
+      "status": "TESTED_NO_MISMATCH"
+    },
+    "seconds": 0.086054
+  },
+  {
+    "case": "nested_second_threshold",
+    "compiler": "gcc",
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutation": {
+      "kind": "constant",
+      "old": 101,
+      "new": 100
+    },
+    "counterexamples": [
+      100,
+      45,
+      87,
+      99
+    ],
+    "generated": 82,
+    "counterexample_pruned": 78,
+    "solver_calls": 4,
+    "restarts": 3,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "tests": 4118,
+      "status": "TESTED_NO_MISMATCH"
+    },
+    "seconds": 0.265498
+  },
+  {
+    "case": "nested_second_threshold",
+    "compiler": "clang",
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutation": {
+      "kind": "constant",
+      "old": 101,
+      "new": 100
+    },
+    "counterexamples": [
+      100,
+      101,
+      2147483654,
+      40,
+      42,
+      74,
+      90,
+      98,
+      99
+    ],
+    "generated": 104,
+    "counterexample_pruned": 95,
+    "solver_calls": 9,
+    "restarts": 8,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "tests": 4118,
+      "status": "TESTED_NO_MISMATCH"
+    },
+    "seconds": 0.574978
+  },
+  {
+    "case": "local_variable_threshold",
+    "compiler": "gcc",
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutation": {
+      "kind": "constant",
+      "old": 13,
+      "new": 12
+    },
+    "counterexamples": [
+      10,
+      4294967295,
+      2,
+      6,
+      8,
+      9
+    ],
+    "generated": 18,
+    "counterexample_pruned": 12,
+    "solver_calls": 6,
+    "restarts": 5,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "tests": 4118,
+      "status": "TESTED_NO_MISMATCH"
+    },
+    "seconds": 0.338941
+  },
+  {
+    "case": "local_variable_threshold",
+    "compiler": "clang",
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutation": {
+      "kind": "constant",
+      "old": 13,
+      "new": 12
+    },
+    "counterexamples": [
+      10,
+      4294967295,
+      2,
+      6,
+      8,
+      9
+    ],
+    "generated": 18,
+    "counterexample_pruned": 12,
+    "solver_calls": 6,
+    "restarts": 5,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "tests": 4118,
+      "status": "TESTED_NO_MISMATCH"
+    },
+    "seconds": 0.356519
+  },
+  {
+    "case": "equality_constant",
+    "compiler": "gcc",
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutation": {
+      "kind": "constant",
+      "old": 124,
+      "new": 123
+    },
+    "counterexamples": [
+      123,
+      65
+    ],
+    "generated": 23,
+    "counterexample_pruned": 21,
+    "solver_calls": 2,
+    "restarts": 1,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "tests": 4118,
+      "status": "TESTED_NO_MISMATCH"
+    },
+    "seconds": 0.154421
+  },
+  {
+    "case": "equality_constant",
+    "compiler": "clang",
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutation": {
+      "kind": "constant",
+      "old": 124,
+      "new": 123
+    },
+    "counterexamples": [
+      123,
+      65
+    ],
+    "generated": 23,
+    "counterexample_pruned": 21,
+    "solver_calls": 2,
+    "restarts": 1,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "tests": 4118,
+      "status": "TESTED_NO_MISMATCH"
+    },
+    "seconds": 0.141893
+  },
+  {
+    "case": "greater_threshold",
+    "compiler": "gcc",
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutation": {
+      "kind": "operator",
+      "old": ">",
+      "new": ">="
+    },
+    "counterexamples": [
+      501,
+      2147483648
+    ],
+    "generated": 5,
+    "counterexample_pruned": 3,
+    "solver_calls": 2,
+    "restarts": 1,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "tests": 4118,
+      "status": "TESTED_NO_MISMATCH"
+    },
+    "seconds": 0.139508
+  },
+  {
+    "case": "greater_threshold",
+    "compiler": "clang",
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutation": {
+      "kind": "operator",
+      "old": ">",
+      "new": ">="
+    },
+    "counterexamples": [
+      501,
+      2147483648
+    ],
+    "generated": 5,
+    "counterexample_pruned": 3,
+    "solver_calls": 2,
+    "restarts": 1,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "tests": 4118,
+      "status": "TESTED_NO_MISMATCH"
+    },
+    "seconds": 0.147184
+  }
+]
