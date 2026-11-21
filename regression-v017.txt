@@ -6,7 +6,7 @@ Command:
 Result:
   Ran 119 tests
   OK
-  Final run duration: 6.436 seconds
+  Final clean-archive run duration: 7.361 seconds
 
 New V0.17 test modules:
   test_ghidra_adapter.py: 5 tests
