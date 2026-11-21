@@ -86,6 +86,95 @@ def model(path,prefix,function='transform'):
                 if o=='jmp': k=target-1;continue
                 c=condition(o[1:]);pending.append((target,r.copy(),full.copy(),flags,op('and',guard,c)));guard=op('and',guard,op('not',c));continue
             if o in ('movl','addl','subl','andl','orl','xorl','imull','shll','shrl','testl','cmpl','roll','rorl'):o=o[:-1]
+            if o == 'rorx' and len(s)==3:
+                if not s[0].startswith('                src,dst=a.rsplit(',',1);w=reg(dst)[1];m=re.fullmatch(r'(-?(?:0x[0-9a-f]+|[0-9]+))?\((%\w+)?(?:,(%\w+),([1248]))?\)',src)
+                if not m:raise Unsupported('lea')
+                d,b,c,scale=m.groups();e=bv(int(d or '0',0),64)
+                if b:e=op('bvadd',e,read(b,64,w==32))
+                if c:e=op('bvadd',e,op('bvmul',read(c,64,w==32),bv(int(scale),64)))
+                write(dst,extract(e,w) if w<64 else e);continue
+            # Byte-swap and zero extension preserve the existing condition flags.
+            if o in ('bswap','bswapl','bswapq') and len(s)==1:
+                w=reg(s[0])[1]
+                if w not in (32,64) or (o=='bswapl' and w!=32) or (o=='bswapq' and w!=64):raise Unsupported('bswap width')
+                v=read(s[0],w);parts=[extract(v,8,8*i) for i in range(w//8)];e=parts[0]
+                for part in parts[1:]:e=op('concat',e,part)
+                write(s[0],e);continue
+            if o in ('movzbl','movzwl','movzbq','movzwq') and len(s)==2:
+                srcw=8 if o[4]=='b' else 16;dstw=32 if o[-1]=='l' else 64
+                if reg(s[0])[1]!=srcw or reg(s[1])[1]!=dstw:raise Unsupported('movzx width')
+                write(s[1],extend(read(s[0],srcw),dstw-srcw));continue
+            if o in ('movsbl','movswl') and len(s)==2:
+                srcw=8 if o=='movsbl' else 16
+                if reg(s[0])[1]!=srcw or reg(s[1])[1]!=32:raise Unsupported('movsx width')
+                write(s[1],f'((_ sign_extend {32-srcw}) {read(s[0],srcw)})');continue
+            if o in ('mov','movabs','movabsq'):
+                write(s[1],read(s[0],reg(s[1])[1]));continue
+            if o in ('cmp','test'):
+                w=reg(s[1])[1];l=read(s[1],w);rr=read(s[0],w)
+                if o=='test':
+                    e=op('bvand',l,rr);flags=(op('=',e,bv(0,w)),'false',signbit(e,w),'false')
+                else:
+                    e=op('bvsub',l,rr);sl=signbit(l,w);sr=signbit(rr,w);se=signbit(e,w)
+                    overflow=op('and',different(sl,sr),different(sl,se))
+                    flags=(op('=',l,rr),op('bvult',l,rr),se,overflow)
+                continue
+            if o.startswith('cmov'):
+                w=reg(s[1])[1];write(s[1],op('ite',condition(o[4:]),read(s[0],w),read(s[1],w)));continue
+            if o in ('add','sub','xor','or','and','imul','shl','shr','sar','rol','ror','not','neg','inc','dec'):
+                dst=s[-1];w=reg(dst)[1];zero=o=='xor' and s[0]==dst
+                l=bv(0,w) if zero else read(dst,w) if len(s)<3 else read(s[1],w)
+                rr=bv(0,w) if zero else read(s[0],w) if len(s)>1 else bv(1,w)
+                mapping={'add':'bvadd','sub':'bvsub','xor':'bvxor','or':'bvor','and':'bvand','imul':'bvmul','inc':'bvadd','dec':'bvsub','shl':'bvshl','shr':'bvlshr','sar':'bvashr'}
+                if o in ('rol','ror','shl','shr','sar'):
+                    if not s[0].startswith('$'):raise Unsupported('variable shift')
+                    n=int(s[0][1:],0)&(63 if w==64 else 31)
+                    if o in ('rol','ror'):e=f'((_ rotate_{"left" if o=="rol" else "right"} {n%w}) {l})'
+                    elif n>=w:raise Unsupported('shift width')
+                    else:e=op(mapping[o],l,bv(n,w))
+                elif o in ('not','neg'):e=op('bvnot' if o=='not' else 'bvneg',l)
+                else:e=op(mapping[o],l,rr)
+                write(dst,e)
+                if o in ('xor','or','and'):
+                    flags=(op('=',e,bv(0,w)),'false',signbit(e,w),'false')
+                elif o in ('add','sub'):
+                    sl=signbit(l,w);sr=signbit(rr,w);se=signbit(e,w)
+                    carry=op('bvult',e,l) if o=='add' else op('bvult',l,rr)
+                    overflow=op('and',op('not',different(sl,sr)),different(sl,se)) if o=='add' else op('and',different(sl,sr),different(sl,se))
+                    flags=(op('=',e,bv(0,w)),carry,se,overflow)
+                elif o in ('inc','dec'):
+                    sl=signbit(l,w);se=signbit(e,w)
+                    carry=flags[1] if flags is not None else None
+                    overflow=op('and',op('not',sl),se) if o=='inc' else op('and',sl,op('not',se))
+                    flags=(op('=',e,bv(0,w)),carry,se,overflow)
+                elif o=='neg':
+                    flags=(op('=',e,bv(0,w)),different(l,bv(0,w)),signbit(e,w),op('=',l,bv(1<<(w-1),w)))
+                elif o=='not':
+                    pass  # NOT preserves all condition flags.
+                else:
+                    flags=None
+                continue
+            raise Unsupported('instruction '+o)
+    if not exits:raise Unsupported('no return')
+    result=exits[-1][1]
+    for guard,value in reversed(exits[:-1]):result=op('ite',guard,value,result)
+    return defs,result
+
+def compare(original,candidate,timeout_ms=3000,original_function='transform',candidate_function='transform'):
+    """Compare two functions using the restricted x86-64 bit-vector model.
+
+    Optional function names let Ghidra-driven verification compare an
+    arbitrary named source function against a generated transform candidate.
+    """
+    try:
+        a,ra=model(original,'a',original_function);b,rb=model(candidate,'b',candidate_function)
+    except (Unsupported,ValueError,IndexError) as e:return {'status':'UNSUPPORTED','reason':str(e)}
+    script='\n'.join(['(set-option :timeout '+str(int(timeout_ms))+')','(declare-const x (_ BitVec 32))',*a,*b,f'(assert (distinct {ra} {rb}))','(check-sat)'])
+    return solve(script)
+):raise Unsupported('rorx immediate')
+                dst=s[2];w=reg(dst)[1];n=int(s[0][1:],0)%w;src=read(s[1],w)
+                e=src if n==0 else f'((_ rotate_right {n}) {src})'
+                write(dst,e);continue
             if o in ('lea','leal'):
                 src,dst=a.rsplit(',',1);w=reg(dst)[1];m=re.fullmatch(r'(-?(?:0x[0-9a-f]+|[0-9]+))?\((%\w+)?(?:,(%\w+),([1248]))?\)',src)
                 if not m:raise Unsupported('lea')
