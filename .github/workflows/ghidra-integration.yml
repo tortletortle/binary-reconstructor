@@ -54,7 +54,9 @@ jobs:
         run: |
           java -version
           python --version
-          "${GHIDRA_INSTALL_DIR}/support/analyzeHeadless" -help >/dev/null
+          test -x "${GHIDRA_INSTALL_DIR}/support/analyzeHeadless"
+          test -f "${GHIDRA_INSTALL_DIR}/Ghidra/application.properties"
+          echo "Ghidra distribution located at: ${GHIDRA_INSTALL_DIR}"
 
       - name: Build a trusted ELF fixture
         run: |
