@@ -70,9 +70,9 @@ def make_export(add_constant=3):
                 {"opcode": 32, "mnemonic": "INT_MULT", "sequence_address": "00401000",
                  "ast_dead_flag": True, "output": t1, "inputs": [param_use, c5]},
                 {"opcode": 19, "mnemonic": "INT_ADD", "sequence_address": "00401004",
-                 "dead": False, "output": t2, "inputs": [t1, cadd]},
+                 "ast_dead_flag": True, "output": t2, "inputs": [t1, cadd]},
                 {"opcode": 10, "mnemonic": "RETURN", "sequence_address": "0040100e",
-                 "dead": False, "output": None, "inputs": [zero, t2]},
+                 "ast_dead_flag": True, "output": None, "inputs": [zero, t2]},
             ],
         }]},
     }
@@ -141,7 +141,7 @@ class GhidraPcodeValidationTests(unittest.TestCase):
         data = make_export()
         block = data["cfg"]["blocks"][0]
         block["ops"].insert(0, {"opcode": 2, "mnemonic": "LOAD", "sequence_address": "00400fff",
-                                "dead": False, "output": vn("unique", "unique", 9, 4),
+                                "ast_dead_flag": True, "output": vn("unique", "unique", 9, 4),
                                 "inputs": [vn("constant", "const", 0, 8), vn("constant", "const", 0, 8)]})
         summary = validate_export(data)
         self.assertTrue(summary["has_memory_ops"])
@@ -158,7 +158,7 @@ class GhidraPcodeValidationTests(unittest.TestCase):
         data = make_export()
         data["cfg"]["blocks"][0]["ops"].insert(0, {
             "opcode": 33, "mnemonic": "INT_DIV", "sequence_address": "00400fff",
-            "dead": False, "output": vn("unique", "unique", 8, 4),
+            "ast_dead_flag": True, "output": vn("unique", "unique", 8, 4),
             "inputs": [vn("constant", "const", 8, 4), vn("constant", "const", 2, 4)],
         })
         with self.assertRaises(UnsupportedPcode):
