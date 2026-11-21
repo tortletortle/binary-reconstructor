@@ -275,8 +275,12 @@ def lower_linear_uint32(summary: dict) -> dict:
         "INT_LEFT": "<<", "INT_RIGHT": ">>",
     }
     for op in ops:
-        if op["dead"]:
-            continue
+        # HighFunction's PcodeOpAST dead marker is a post-analysis liveness
+        # annotation, not a reliable instruction filter for this export path:
+        # Ghidra 12.2 marks the complete syntax-tree-backed operation stream
+        # dead after decompilation while the C AST still uses those operations.
+        # Preserve the marker in JSON for diagnostics, but lower the returned
+        # HighFunction operation stream in sequence order.
         seen_non_dead += 1
         mnemonic = op["mnemonic"].upper()
         inputs = op["inputs"]
