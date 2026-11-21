@@ -1,6 +1,8 @@
 import pathlib, subprocess, tempfile, unittest
 from unittest.mock import patch
 from ghidra_adapter import export
+from test_ghidra_pcode import make_export
+import json
 from flow import lift_flow
 from formal import compare
 from reconstruct import Unsupported
@@ -10,12 +12,14 @@ class AdapterTests(unittest.TestCase):
     def test_missing(self):
         self.assertEqual(export(__file__,'transform',headless='/no/such/launcher')['status'],'DEPENDENCY_MISSING')
     def test_contract(self):
+        payload=make_export();payload['function']['name']='transform';payload['function']['entry']='00101000'
+        payload['decompilation']['c_source']='uint transform(uint x) { return x * 5 + 3; }'
         def runner(args,**kwargs):
-            out=pathlib.Path(args[args.index('-postScript')+3]);(out/'decompiled.c').write_text('uint transform(uint x) { return x; }');(out/'entry.txt').write_text('00101000')
+            out=pathlib.Path(args[args.index('-postScript')+3]);(out/'decompiled.c').write_text(payload['decompilation']['c_source']);(out/'entry.txt').write_text('00101000');(out/'function.json').write_text(json.dumps(payload))
             return subprocess.CompletedProcess(args,0,'','')
         with patch('ghidra_adapter.subprocess.run',side_effect=runner):
             r=export(__file__,'transform',headless='/bin/true')
-        self.assertEqual(r['status'],'RAW_PSEUDOCODE');self.assertFalse(r['verified'])
+        self.assertEqual(r['status'],'RAW_PSEUDOCODE');self.assertFalse(r['verified']);self.assertEqual(r['analysis']['operation_count'],3)
     def test_no_output(self):
         with patch('ghidra_adapter.subprocess.run',return_value=subprocess.CompletedProcess([],0,'','')):
             self.assertEqual(export(__file__,'transform',headless='/bin/true')['status'],'EXPORT_FAILED')
