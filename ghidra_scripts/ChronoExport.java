@@ -12,6 +12,8 @@ import ghidra.program.model.listing.FunctionIterator;
 import ghidra.program.model.listing.Parameter;
 import ghidra.program.model.listing.VariableStorage;
 import ghidra.program.model.pcode.HighFunction;
+import ghidra.program.model.pcode.FunctionPrototype;
+import ghidra.program.model.pcode.HighSymbol;
 import ghidra.program.model.pcode.HighVariable;
 import ghidra.program.model.pcode.PcodeBlockBasic;
 import ghidra.program.model.pcode.PcodeOp;
@@ -122,24 +124,25 @@ public class ChronoExport extends GhidraScript {
         b.append(",\"entry\":").append(q(function.getEntryPoint().toString()));
         b.append(",\"signature\":").append(q(function.getPrototypeString(false, true)));
         b.append(",\"calling_convention\":").append(q(function.getCallingConventionName()));
-        b.append(",\"return_type\":").append(q(function.getReturnType() == null ? null : function.getReturnType().getName()));
-        Parameter returnParameter = function.getReturn();
-        b.append(",\"return_size\":").append(returnParameter == null ? 0 : returnParameter.getLength());
+        FunctionPrototype prototype = high.getFunctionPrototype();
+        b.append(",\"return_type\":").append(q(prototype.getReturnType() == null ? null : prototype.getReturnType().getName()));
+        b.append(",\"return_size\":").append(prototype.getReturnType() == null ? 0 : prototype.getReturnType().getLength());
         b.append(",\"return_storage\":");
-        if (returnParameter == null) b.append("null");
-        else appendStorage(b, returnParameter.getVariableStorage());
+        if (prototype.getReturnStorage() == null) b.append("null");
+        else appendStorage(b, prototype.getReturnStorage());
         b.append(",\"external\":").append(function.isExternal());
         b.append(",\"thunk\":").append(function.isThunk());
         b.append(",\"parameters\":[");
-        Parameter[] parameters = function.getParameters();
-        for (int i = 0; i < parameters.length; i++) {
+        for (int i = 0; i < prototype.getNumParams(); i++) {
             if (i > 0) b.append(',');
-            Parameter p = parameters[i];
+            HighSymbol p = prototype.getParam(i);
             b.append("{\"ordinal\":").append(i);
-            b.append(",\"name\":").append(q(p.getName()));
-            b.append(",\"type\":").append(q(p.getDataType() == null ? null : p.getDataType().getName()));
-            b.append(",\"size\":").append(p.getLength());
-            b.append(",\"storage\":"); appendStorage(b, p.getVariableStorage());
+            b.append(",\"name\":").append(q(p == null ? "param_" + i : p.getName()));
+            b.append(",\"type\":").append(q(p == null || p.getDataType() == null ? null : p.getDataType().getName()));
+            b.append(",\"size\":").append(p == null ? 0 : p.getSize());
+            b.append(",\"storage\":");
+            if (p == null) b.append("null");
+            else appendStorage(b, p.getStorage());
             b.append('}');
         }
         b.append("]}");
