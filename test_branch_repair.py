@@ -96,6 +96,49 @@ class BranchRepairTests(unittest.TestCase):
                 result = repair(binary, pseudo, trusted=True, max_candidates=2, max_compiled=1)
         self.assertEqual(result['status'], 'UNRESOLVED')
 
+    def test_repairs_two_simultaneous_branch_errors(self):
+        pseudo = ('uint transform(uint x){uint y;if(x<11u)goto A;if(x<101u)goto B;'
+                  'y=x-7u;goto END;B:y=x*3u;goto END;A:y=x+100u;END:return y;}')
+        with tempfile.TemporaryDirectory() as d:
+            binary = build(d, 'if(x<10u)return x+100u;else if(x<100u)return x*3u;else return x-7u;')
+            single = repair(binary, pseudo, trusted=True, max_edits=1,
+                            max_candidates=512, max_compiled=64, max_seconds=15)
+            self.assertEqual(single['status'], 'UNRESOLVED')
+            result = repair(binary, pseudo, trusted=True, max_edits=2,
+                            max_candidates=4096, max_compiled=128, max_seconds=30)
+        self.assertEqual(result['status'], 'REPAIRED_VERIFIED')
+        self.assertEqual(len(result['mutations']), 2)
+        self.assertEqual(len(result['branch_indices']), 2)
+        self.assertEqual(result['verification']['formal']['status'], 'UNSAT')
+        self.assertIn(10, result['counterexamples'])
+        self.assertIn(100, result['counterexamples'])
+
+    def test_repairs_two_edits_in_one_predicate(self):
+        pseudo = ('uint transform(uint x){uint y;if(x>=11u)goto SMALL;'
+                  'y=x*2u;goto END;SMALL:y=x+1u;END:return y;}')
+        with tempfile.TemporaryDirectory() as d:
+            binary = build(d, 'if(x<10u)return x+1u;else return x*2u;')
+            result = repair(binary, pseudo, trusted=True, max_edits=2,
+                            max_candidates=2048, max_compiled=96, max_seconds=20)
+        self.assertEqual(result['status'], 'REPAIRED_VERIFIED')
+        self.assertEqual(len(result['mutations']), 2)
+        self.assertEqual(result['branch_indices'], [1])
+        self.assertEqual(result['verification']['formal']['status'], 'UNSAT')
+
+    def test_three_branch_errors_exceed_two_edit_budget(self):
+        pseudo = ('uint transform(uint x){uint y;if(x<11u)goto A;if(x<101u)goto B;'
+                  'if(x<1001u)goto C;y=x+4000u;goto END;C:y=x*5u+3000u;goto END;'
+                  'B:y=x*3u+2000u;goto END;A:y=x+1000u;END:return y;}')
+        with tempfile.TemporaryDirectory() as d:
+            binary = build(d, 'if(x<10u)return x+1000u;else if(x<100u)return x*3u+2000u;'
+                              'else if(x<1000u)return x*5u+3000u;else return x+4000u;')
+            result = repair(binary, pseudo, trusted=True, max_edits=2,
+                            max_candidates=1000, max_compiled=48, max_seconds=15,
+                            max_options_per_branch=64)
+        self.assertEqual(result['status'], 'UNRESOLVED')
+        self.assertLessEqual(result['generated'], 1000)
+        self.assertNotEqual(result.get('verification', {}).get('formal', {}).get('status'), 'UNSAT')
+
     def test_untrusted_gate(self):
         with self.assertRaises(ValueError):
             repair('/tmp/does-not-exist', 'uint transform(uint x){return x;}', trusted=False)
