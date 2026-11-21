@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "exporter": "ChronoExport",
+  "ghidra_version": "12.2",
+  "program": {
+    "name": "ghidra_fixture.so",
+    "language_id": "x86:LE:64:default",
+    "big_endian": false,
+    "pointer_size": 8,
+    "image_base": "00100000"
+  },
+  "function": {
+    "name": "chrono_mul_add",
+    "entry": "00101100",
+    "signature": "uint32_t __stdcall chrono_mul_add(uint32_t x)",
+    "calling_convention": "__stdcall",
+    "return_type": "uint32_t",
+    "return_size": 4,
+    "return_storage": {
+      "text": "EAX:4",
+      "varnodes": [
+        {
+          "kind": "register",
+          "space": "register",
+          "offset_hex": "0x0",
+          "size": 4,
+          "address": "register:00000000",
+          "register_name": "EAX",
+          "high_name": null,
+          "high_type": null
+        }
+      ]
+    },
+    "external": false,
+    "thunk": false,
+    "parameters": [
+      {
+        "ordinal": 0,
+        "name": "x",
+        "type": "uint32_t",
+        "size": 4,
+        "storage": {
+          "text": "EDI:4",
+          "varnodes": [
+            {
+              "kind": "register",
+              "space": "register",
+              "offset_hex": "0x38",
+              "size": 4,
+              "address": "register:00000038",
+              "register_name": "EDI",
+              "high_name": null,
+              "high_type": null
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "decompilation": {
+    "completed": true,
+    "c_source": "\nuint32_t chrono_mul_add(uint32_t x)\n\n{\n  return x * 5 + 3;\n}\n\n"
+  },
+  "cfg": {
+    "blocks": [
+      {
+        "id": 0,
+        "start": "00101104",
+        "stop": "0010110a",
+        "predecessors": [],
+        "successors": [],
+        "ops": [
+          {
+            "opcode": 32,
+            "mnemonic": "INT_MULT",
+            "sequence_address": "00101104",
+            "dead": true,
+            "output": {
+              "kind": "register",
+              "space": "register",
+              "offset_hex": "0x0",
+              "size": 4,
+              "address": "register:00000000",
+              "register_name": "EAX",
+              "high_name": "UNNAMED",
+              "high_type": "uint32_t"
+            },
+            "inputs": [
+              {
+                "kind": "register",
+                "space": "register",
+                "offset_hex": "0x38",
+                "size": 4,
+                "address": "register:00000038",
+                "register_name": "EDI",
+                "high_name": "x",
+                "high_type": "uint32_t"
+              },
+              {
+                "kind": "constant",
+                "space": "const",
+                "offset_hex": "0x5",
+                "size": 4,
+                "address": "const:00000005",
+                "register_name": null,
+                "high_name": null,
+                "high_type": "int"
+              }
+            ]
+          },
+          {
+            "opcode": 19,
+            "mnemonic": "INT_ADD",
+            "sequence_address": "00101107",
+            "dead": true,
+            "output": {
+              "kind": "register",
+              "space": "register",
+              "offset_hex": "0x0",
+              "size": 4,
+              "address": "register:00000000",
+              "register_name": "EAX",
+              "high_name": "UNNAMED",
+              "high_type": "uint32_t"
+            },
+            "inputs": [
+              {
+                "kind": "register",
+                "space": "register",
+                "offset_hex": "0x0",
+                "size": 4,
+                "address": "register:00000000",
+                "register_name": "EAX",
+                "high_name": "UNNAMED",
+                "high_type": "uint32_t"
+              },
+              {
+                "kind": "constant",
+                "space": "const",
+                "offset_hex": "0x3",
+                "size": 4,
+                "address": "const:00000003",
+                "register_name": null,
+                "high_name": null,
+                "high_type": "uint32_t"
+              }
+            ]
+          },
+          {
+            "opcode": 1,
+            "mnemonic": "COPY",
+            "sequence_address": "0010110a",
+            "dead": true,
+            "output": {
+              "kind": "register",
+              "space": "register",
+              "offset_hex": "0x0",
+              "size": 4,
+              "address": "register:00000000",
+              "register_name": "EAX",
+              "high_name": "UNNAMED",
+              "high_type": "uint32_t"
+            },
+            "inputs": [
+              {
+                "kind": "register",
+                "space": "register",
+                "offset_hex": "0x0",
+                "size": 4,
+                "address": "register:00000000",
+                "register_name": "EAX",
+                "high_name": "UNNAMED",
+                "high_type": "uint32_t"
+              }
+            ]
+          },
+          {
+            "opcode": 10,
+            "mnemonic": "RETURN",
+            "sequence_address": "0010110a",
+            "dead": true,
+            "output": null,
+            "inputs": [
+              {
+                "kind": "constant",
+                "space": "const",
+                "offset_hex": "0x0",
+                "size": 8,
+                "address": "const:00000000",
+                "register_name": null,
+                "high_name": null,
+                "high_type": "undefined8"
+              },
+              {
+                "kind": "register",
+                "space": "register",
+                "offset_hex": "0x0",
+                "size": 4,
+                "address": "register:00000000",
+                "register_name": "EAX",
+                "high_name": "UNNAMED",
+                "high_type": "uint32_t"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
