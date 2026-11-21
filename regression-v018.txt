@@ -1,36 +1,48 @@
-ChronoCompiler V0.18 local validation report
+ChronoCompiler V0.18 final validation report
 
-Environment:
+Local development environment:
   Python 3.13.5
   Linux x86_64
-  GCC available
-  GNU objdump available
-  libz3.so.4 available
+  GCC and GNU objdump available
+  System Z3 library available
   OpenJDK 21.0.12.1
-  Ghidra: NOT INSTALLED
+  Ghidra not installed locally
 
-Local checks:
+GitHub Actions acceptance environment:
+  Ubuntu 26.04.1 x86-64
+  Temurin OpenJDK 25.0.5
+  Python 3.13.18
+  GCC 15.2.0
+  GNU Binutils 2.46
+  libz3-4 4.13.3-1build1
+  Ghidra 12.2
+
+Final workflow:
+  https://github.com/tortletortle/binary-reconstructor/actions/runs/44882512625
+  Commit: f40439629d677004d0dc659e22f8b614fdd41c51
+  Workflow conclusion: SUCCESS
+
+Regression:
   python -m unittest discover -v
-  Result: Ran 122 tests; OK
-  Duration: 6.900 seconds (host-dependent)
+  Result: Ran 124 tests; OK
+  CI duration: 8.649 seconds
 
-New test module:
-  test_ghidra_smoke.py: 3 tests
+Real Ghidra evidence:
+  Java exporter compiled and executed in Ghidra 12.2 Headless Analyzer.
+  Actual schema-v2 JSON export validated.
+  Function: chrono_mul_add
+  CFG blocks: 1
+  CFG edges: 0
+  P-code operations: INT_MULT, INT_ADD, COPY, RETURN
+  Lowered expression: ((x * 5u) + 3u)
+  SMT result: UNSAT
+  Native replay: 4,120 passed
+  Smoke status: DIRECT_VERIFIED
 
-Native fixture:
-  tests/fixtures/ghidra_mul_add.c
-  Compiled to ELF64 x86-64 shared object.
-  Exported symbol: chrono_mul_add
-  Disassembly inspected: imul $5, %edi, %eax; add $3, %eax; ret
-  Additional native boundary checks: 6/6 passed.
+Captured regression fixtures:
+  fixtures/ghidra-12.2-chrono-mul-add-v1-raw.json
+  fixtures/ghidra-12.2-chrono-mul-add-v2-real.json
 
-Workflow:
-  .github/workflows/ghidra-12-2-integration.yml
-  YAML parse: OK
-  Ghidra release pinned: Ghidra_12.2_build
-  Archive SHA-256 pinned and verified in workflow command.
-  Real Ghidra Headless run: PENDING GitHub Actions.
-
-Evidence boundary:
-  No claim of successful real Ghidra Java compilation, P-code export, or
-  end-to-end verification is made until the workflow produces its artifacts.
+Scope:
+  The successful result proves one narrow real-Ghidra, one-block uint32 function path.
+  It does not prove arbitrary firmware or multi-block CFG reconstruction.
