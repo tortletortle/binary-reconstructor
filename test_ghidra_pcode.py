@@ -343,7 +343,7 @@ class GhidraCfgLoweringTests(unittest.TestCase):
 
     def test_real_shape_branch_join_with_boolean_compare_and_xor(self):
         summary = validate_export(make_branch_export("branch_join"))
-        lowered = lower_acyclic_uint32(summary)
+        lowered = lower_acyclic_uint32(summary, branch_polarities={0: False})
         self.assertEqual(lowered["cfg_paths"], 2)
         with tempfile.TemporaryDirectory() as d:
             binary = build_branch_original(pathlib.Path(d))
@@ -355,7 +355,7 @@ class GhidraCfgLoweringTests(unittest.TestCase):
     def test_wrong_phi_input_order_fails_closed_on_undefined_ssa_value(self):
         summary = validate_export(make_branch_export("branch_transform", swap_phi=True))
         with self.assertRaises(UnsupportedPcode):
-            lower_acyclic_uint32(summary)
+            lower_acyclic_uint32(summary, branch_polarities={0: False})
 
     def test_wrong_cbranch_target_within_cfg_produces_counterexample(self):
         data = make_branch_export("branch_transform")
@@ -403,7 +403,7 @@ class GhidraCfgLoweringTests(unittest.TestCase):
 
     def test_comparison_ast_uses_unsigned_uint32_semantics(self):
         summary = validate_export(make_branch_export())
-        lowered = lower_acyclic_uint32(summary)
+        lowered = lower_acyclic_uint32(summary, branch_polarities={0: False})
         for x in (0, 9, 10, 0x7fffffff, 0x80000000, 0xffffffff):
             expected = x + 1 if x < 10 else (x * 2 + 3) & 0xffffffff
             self.assertEqual(evaluate_pcode_ast(lowered["ast"], x), expected & 0xffffffff)
