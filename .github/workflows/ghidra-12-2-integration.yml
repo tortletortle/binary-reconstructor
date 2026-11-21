@@ -36,6 +36,8 @@ jobs:
           java -version
           python --version
           gcc --version | head -n 1
+          objdump --version | head -n 1
+          dpkg-query -W -f='libz3-4=${Version}\\n' libz3-4
           ldconfig -p | grep 'libz3.so'
 
       - name: Download and verify official Ghidra 12.2 release
@@ -53,9 +55,12 @@ jobs:
           echo "GHIDRA_INSTALL_DIR=$GHIDRA_DIR" >> "$GITHUB_ENV"
 
       - name: Run existing regression suite
+        id: regression
+        continue-on-error: true
         run: python -m unittest discover -v
 
       - name: Build trusted real-binary fixture
+        if: always()
         run: |
           mkdir -p build
           gcc -g -O2 -fno-stack-protector -fPIC -shared -Wl,-z,relro,-z,now \
@@ -64,6 +69,7 @@ jobs:
           nm -D --defined-only build/ghidra_fixture.so | grep chrono_mul_add
 
       - name: Run real Ghidra export, P-code lowering, SMT and native replay
+        if: always()
         run: |
           python scripts/ghidra_smoke.py build/ghidra_fixture.so chrono_mul_add \
             --output-dir build/ghidra-smoke --timeout 300 --decompile-timeout 60 --random-replay 4096
@@ -78,3 +84,13 @@ jobs:
             build/ghidra-smoke/**
           if-no-files-found: warn
           retention-days: 30
+
+      - name: Enforce regression-suite result
+        if: always()
+        env:
+          REGRESSION_OUTCOME: ${{ steps.regression.outcome }}
+        run: |
+          if [ "$REGRESSION_OUTCOME" != "success" ]; then
+            echo "Full regression suite failed; inspect the diagnostic assertion output above."
+            exit 1
+          fi
