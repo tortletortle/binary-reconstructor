@@ -100,7 +100,7 @@ def verify_lowered(binary, function_name, lowered, *, compiler=None, timeout_ms=
         for index, x in enumerate(probes, 1):
             original_value = int(original_fn(x)) & MASK
             candidate_value = int(candidate_fn(x)) & MASK
-            expected = evaluate(lowered["ast"], x) & MASK
+            expected = evaluate_pcode_ast(lowered["ast"], x) & MASK
             if original_value != candidate_value or candidate_value != expected:
                 return {"status": "MODEL_MISMATCH", "formal": formal,
                         "input": x, "original": original_value,
