@@ -1,0 +1,213 @@
+[
+  {
+    "case": "two_branch_errors",
+    "compiler": "gcc",
+    "max_edits": 2,
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutations": [
+      {
+        "branch": 1,
+        "kind": "constant",
+        "old": 11,
+        "new": 10,
+        "path": [
+          2
+        ]
+      },
+      {
+        "branch": 2,
+        "kind": "constant",
+        "old": 101,
+        "new": 100,
+        "path": [
+          2
+        ]
+      }
+    ],
+    "counterexamples": [
+      10,
+      11,
+      1071435149,
+      100
+    ],
+    "generated": 94,
+    "counterexample_pruned": 90,
+    "solver_calls": 4,
+    "restarts": 3,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "status": "TESTED_NO_MISMATCH",
+      "tested": 4113
+    },
+    "seconds": 0.431949
+  },
+  {
+    "case": "two_branch_errors",
+    "compiler": "clang",
+    "max_edits": 2,
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutations": [
+      {
+        "branch": 1,
+        "kind": "constant",
+        "old": 11,
+        "new": 10,
+        "path": [
+          2
+        ]
+      },
+      {
+        "branch": 2,
+        "kind": "constant",
+        "old": 101,
+        "new": 100,
+        "path": [
+          2
+        ]
+      }
+    ],
+    "counterexamples": [
+      100,
+      87,
+      10,
+      11
+    ],
+    "generated": 95,
+    "counterexample_pruned": 91,
+    "solver_calls": 4,
+    "restarts": 3,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "status": "TESTED_NO_MISMATCH",
+      "tested": 4113
+    },
+    "seconds": 0.406599
+  },
+  {
+    "case": "two_edits_one_predicate",
+    "compiler": "gcc",
+    "max_edits": 2,
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutations": [
+      {
+        "branch": 1,
+        "kind": "operator",
+        "old": ">=",
+        "new": "<",
+        "path": []
+      },
+      {
+        "branch": 1,
+        "kind": "constant",
+        "old": 11,
+        "new": 10,
+        "path": [
+          2
+        ]
+      }
+    ],
+    "counterexamples": [
+      1431644842,
+      10,
+      11,
+      2863311534,
+      3937031466,
+      4294967295
+    ],
+    "generated": 94,
+    "counterexample_pruned": 88,
+    "solver_calls": 6,
+    "restarts": 5,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "status": "TESTED_NO_MISMATCH",
+      "tested": 4113
+    },
+    "seconds": 0.391568
+  },
+  {
+    "case": "two_edits_one_predicate",
+    "compiler": "clang",
+    "max_edits": 2,
+    "baseline": "COUNTEREXAMPLE",
+    "status": "REPAIRED_VERIFIED",
+    "mutations": [
+      {
+        "branch": 1,
+        "kind": "operator",
+        "old": ">=",
+        "new": "<",
+        "path": []
+      },
+      {
+        "branch": 1,
+        "kind": "constant",
+        "old": 11,
+        "new": 10,
+        "path": [
+          2
+        ]
+      }
+    ],
+    "counterexamples": [
+      2,
+      4294967294,
+      10
+    ],
+    "generated": 70,
+    "counterexample_pruned": 67,
+    "solver_calls": 3,
+    "restarts": 2,
+    "formal": "UNSAT",
+    "cross_compiler": {
+      "status": "TESTED_NO_MISMATCH",
+      "tested": 4113
+    },
+    "seconds": 0.290267
+  },
+  {
+    "case": "three_branch_errors_negative",
+    "compiler": "gcc",
+    "max_edits": 2,
+    "baseline": "COUNTEREXAMPLE",
+    "status": "UNRESOLVED",
+    "mutations": [],
+    "counterexamples": [
+      1000,
+      2555243,
+      795,
+      10
+    ],
+    "generated": 1800,
+    "counterexample_pruned": 1797,
+    "solver_calls": 3,
+    "restarts": 3,
+    "formal": null,
+    "cross_compiler": null,
+    "seconds": 0.66429
+  },
+  {
+    "case": "three_branch_errors_negative",
+    "compiler": "clang",
+    "max_edits": 2,
+    "baseline": "COUNTEREXAMPLE",
+    "status": "UNRESOLVED",
+    "mutations": [],
+    "counterexamples": [
+      10,
+      1000,
+      7537,
+      753
+    ],
+    "generated": 1800,
+    "counterexample_pruned": 1797,
+    "solver_calls": 3,
+    "restarts": 3,
+    "formal": null,
+    "cross_compiler": null,
+    "seconds": 0.652721
+  }
+]
