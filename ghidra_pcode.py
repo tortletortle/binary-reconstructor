@@ -1,7 +1,7 @@
 """Validate Ghidra HighFunction exports and lower a deliberately narrow P-code subset.
 
 This is a fail-closed frontend for pure x86-64 SysV uint32 -> uint32 functions
-whose decompiler CFG has one basic block. It does not interpret arbitrary P-code.
+with bounded acyclic HighFunction CFGs. It does not interpret arbitrary P-code.
 """
 from collections import Counter, deque
 from typing import Any
@@ -410,8 +410,9 @@ def lower_acyclic_uint32(summary: dict, *, branch_polarities: dict[int, bool] | 
 
     This is path-sensitive symbolic execution over Ghidra HighFunction P-code.
     MULTIEQUAL inputs are selected using the actual predecessor edge, rather than
-    flattening register storage or guessing a phi input. CBRANCH's target edge is
-    taken when its condition varnode is zero, matching Ghidra P-code semantics.
+    flattening register storage or guessing a phi input. Effective CBRANCH polarity
+    is supplied by an external SMT search because Java HighFunction omits the
+    decompiler's internal boolean_flip flag.
     """
     if summary.get("block_count") == 1:
         return lower_linear_uint32(summary)
