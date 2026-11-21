@@ -352,9 +352,17 @@ class GhidraCfgLoweringTests(unittest.TestCase):
         self.assertEqual(result["formal"]["status"], "UNSAT")
         self.assertGreaterEqual(result["native_replay"], 512)
 
-    def test_wrong_phi_input_order_produces_counterexample(self):
+    def test_wrong_phi_input_order_fails_closed_on_undefined_ssa_value(self):
         summary = validate_export(make_branch_export("branch_transform", swap_phi=True))
-        lowered = lower_acyclic_uint32(summary)
+        with self.assertRaises(UnsupportedPcode):
+            lower_acyclic_uint32(summary)
+
+    def test_wrong_cbranch_target_within_cfg_produces_counterexample(self):
+        data = make_branch_export("branch_transform")
+        # Redirect the false-condition edge to the fallthrough block. The CFG
+        # remains structurally valid, but its path semantics are now reversed.
+        data["cfg"]["blocks"][0]["ops"][-1]["inputs"][0]["offset_hex"] = "0x402010"
+        lowered = lower_acyclic_uint32(validate_export(data))
         with tempfile.TemporaryDirectory() as d:
             binary = build_branch_original(pathlib.Path(d))
             result = verify_lowered(binary, "branch_transform", lowered, random_replay=32)
