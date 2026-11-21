@@ -1,4 +1,5 @@
 import copy
+import json
 import pathlib
 import subprocess
 import tempfile
@@ -30,7 +31,7 @@ def make_export(add_constant=3):
     t1 = vn("unique", "unique", 1, 4, high="uVar1")
     t2 = vn("unique", "unique", 2, 4, high="uVar2")
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "exporter": "ChronoExport",
         "ghidra_version": "12.1.4",
         "program": {
@@ -67,7 +68,7 @@ def make_export(add_constant=3):
             "successors": [],
             "ops": [
                 {"opcode": 32, "mnemonic": "INT_MULT", "sequence_address": "00401000",
-                 "dead": False, "output": t1, "inputs": [param_use, c5]},
+                 "ast_dead_flag": True, "output": t1, "inputs": [param_use, c5]},
                 {"opcode": 19, "mnemonic": "INT_ADD", "sequence_address": "00401004",
                  "dead": False, "output": t2, "inputs": [t1, cadd]},
                 {"opcode": 10, "mnemonic": "RETURN", "sequence_address": "0040100e",
@@ -165,6 +166,23 @@ class GhidraPcodeValidationTests(unittest.TestCase):
 
 
 class GhidraPcodeVerificationTests(unittest.TestCase):
+    def test_captured_real_ghidra_12_2_export_end_to_end(self):
+        root = pathlib.Path(__file__).parent
+        fixture = root / "fixtures" / "ghidra-12.2-chrono-mul-add-v1-raw.json"
+        payload = json.loads(fixture.read_text(encoding="utf-8"))
+        summary = validate_export(payload, expected_function="chrono_mul_add")
+        lowered = lower_linear_uint32(summary)
+        self.assertEqual(lowered["expression"], "((x * 5u) + 3u)")
+        with tempfile.TemporaryDirectory() as temp:
+            binary = pathlib.Path(temp) / "ghidra_fixture.so"
+            source = root / "tests" / "fixtures" / "ghidra_mul_add.c"
+            subprocess.run(["gcc", "-g", "-O2", "-fPIC", "-shared", str(source), "-o", str(binary)],
+                           check=True, capture_output=True, timeout=10)
+            result = verify_lowered(binary, "chrono_mul_add", lowered, random_replay=512)
+        self.assertEqual(result["status"], "DIRECT_VERIFIED")
+        self.assertEqual(result["formal"]["status"], "UNSAT")
+        self.assertGreaterEqual(result["native_replay"], 512)
+
     def test_real_binary_pcode_lowering_and_smt_verification(self):
         with tempfile.TemporaryDirectory() as d:
             binary = build_original(pathlib.Path(d))
