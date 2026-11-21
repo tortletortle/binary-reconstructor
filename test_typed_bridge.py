@@ -27,7 +27,7 @@ class TypedBridgeTests(unittest.TestCase):
             p=pathlib.Path(d)/'target.c';o=p.with_suffix('.so');p.write_text('#include <stdint.h>\nuint32_t transform(uint32_t x){return __builtin_bswap16(x);}\n')
             subprocess.run(['gcc','-O2','-shared','-fPIC',str(p),'-o',str(o)],check=True)
             r=typed_pipeline(o,code('byte lo=SUB41(x,0);byte hi=SUB41(x,1);return CONCAT11(lo,hi);'),trusted=True)
-            self.assertEqual(r['status'],'DIRECT_VERIFIED')
+            self.assertEqual(r['status'],'DIRECT_VERIFIED',msg=f'typed pipeline result: {r!r}')
     def test_repair(self):
         with tempfile.TemporaryDirectory() as d:
             p=pathlib.Path(d)/'target.c';o=p.with_suffix('.so');p.write_text('#include <stdint.h>\nuint32_t transform(uint32_t x){return x+5u;}\n')
