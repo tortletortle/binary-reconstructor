@@ -40,7 +40,22 @@
           ]
         }
       }
-    ]
+    ],
+    "return_storage": {
+      "text": "EAX",
+      "varnodes": [
+        {
+          "kind": "register",
+          "space": "register",
+          "offset_hex": "0x0",
+          "size": 4,
+          "address": "register:00000000",
+          "register_name": "EAX",
+          "high_name": null,
+          "high_type": null
+        }
+      ]
+    }
   },
   "decompilation": {
     "completed": true,
