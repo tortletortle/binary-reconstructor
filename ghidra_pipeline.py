@@ -14,7 +14,7 @@ import subprocess
 import tempfile
 
 from cers_multi import MASK, PROBES
-from ghidra_pcode import UnsupportedPcode, evaluate_pcode_ast, lower_acyclic_uint32
+from ghidra_pcode import (UnsupportedPcode, evaluate_pcode_ast,\n                          lower_acyclic_uint32_candidates)
 from formal import compare
 from ghidra_adapter import export
 
@@ -110,6 +110,51 @@ def verify_lowered(binary, function_name, lowered, *, compiler=None, timeout_ms=
                 "native_replay": len(probes), "expression": expression}
 
 
+
+def verify_acyclic_candidates(binary, function_name, summary, *, compiler=None,
+                              timeout_ms=3000, random_replay=4096):
+    """Search unknown HighFunction CBRANCH polarities using the original binary as oracle."""
+    candidates = lower_acyclic_uint32_candidates(summary)
+    attempts = []
+    verified = []
+    for lowered in candidates:
+        checked = verify_lowered(
+            binary, function_name, lowered, compiler=compiler,
+            timeout_ms=timeout_ms, random_replay=random_replay,
+        )
+        attempt = {
+            "branch_polarities": lowered.get("branch_polarities", {}),
+            "expression": lowered["expression"],
+            "status": checked["status"],
+            "formal_status": checked.get("formal", {}).get("status"),
+            "native_replay": checked.get("native_replay", 0),
+        }
+        attempts.append(attempt)
+        if checked["status"] == "DIRECT_VERIFIED" and checked.get("formal", {}).get("status") == "UNSAT":
+            verified.append((lowered, checked))
+    if not verified:
+        return {
+            "status": "POLARITY_UNRESOLVED",
+            "polarity_search": {
+                "candidate_count": len(candidates),
+                "verified_count": 0,
+                "attempts": attempts,
+            },
+        }
+    lowered, checked = verified[0]
+    return {
+        "status": "DIRECT_VERIFIED",
+        "lowered": lowered,
+        "verification": checked,
+        "polarity_search": {
+            "candidate_count": len(candidates),
+            "verified_count": len(verified),
+            "selected_branch_polarities": lowered.get("branch_polarities", {}),
+            "attempts": attempts,
+        },
+    }
+
+
 def pipeline(binary, function, *, trusted=False, headless=None, timeout=120,
              decompile_timeout=30, compiler=None, random_replay=4096):
     if not trusted:
@@ -119,7 +164,10 @@ def pipeline(binary, function, *, trusted=False, headless=None, timeout=120,
     if exported["status"] != "RAW_PSEUDOCODE":
         return {"status": exported["status"], "export": exported}
     try:
-        lowered = lower_acyclic_uint32(exported["analysis"])
+        search = verify_acyclic_candidates(
+            binary, exported["function"], exported["analysis"],
+            compiler=compiler, random_replay=random_replay,
+        )
     except UnsupportedPcode as exc:
         return {
             "status": "UNSUPPORTED_PCODE",
@@ -130,19 +178,20 @@ def pipeline(binary, function, *, trusted=False, headless=None, timeout=120,
             "reason": str(exc),
             "decompiler_c_source": exported["code"],
         }
-    checked = verify_lowered(binary, exported["function"], lowered,
-                             compiler=compiler, random_replay=random_replay)
+    lowered = search.get("lowered", {})
+    checked = search.get("verification", {})
     return {
-        "status": checked["status"],
+        "status": search["status"],
         "function": exported["function"],
         "entry": exported["entry"],
         "binary_sha256": exported["binary_sha256"],
         "ghidra_version": exported["analysis"]["ghidra_version"],
-        "pcode_operations": lowered["pcode_operations"],
+        "pcode_operations": lowered.get("pcode_operations", exported["analysis"]["operation_count"]),
         "cfg_paths": lowered.get("cfg_paths", 1),
         "cfg_blocks": lowered.get("cfg_blocks", exported["analysis"]["block_count"]),
-        "expression": lowered["expression"],
+        "expression": lowered.get("expression"),
         "verification": checked,
+        "polarity_search": search["polarity_search"],
         "analysis": {key: exported["analysis"][key] for key in (
             "block_count", "edge_count", "operation_count", "operation_counts", "has_cycles",
             "has_memory_ops", "has_calls", "has_indirect_flow", "unsupported_ops")},
