@@ -63,9 +63,65 @@ jobs:
         run: |
           mkdir -p build
           gcc -O1 -fno-inline -fno-stack-protector -shared -fPIC \
-            tests/ghidra/mul_add.c -o build/libchrono_fixture.so
+            tests/ghidra/mul_add.c tests/ghidra/branch.c -o build/libchrono_fixture.so
           file build/libchrono_fixture.so
-          nm -D build/libchrono_fixture.so | grep ' mul_add$'
+          nm -D build/libchrono_fixture.so | grep -E ' (mul_add|branch_transform|branch_join)
+
+      - name: Run complete regression suite
+        run: python -m unittest discover -v
+
+      - name: Run real Ghidra export and formal verification
+        env:
+          GHIDRA_INSTALL_DIR: ${{ runner.temp }}/ghidra/ghidra_12.2_PUBLIC
+        run: |
+          python ghidra_pipeline.py build/libchrono_fixture.so mul_add --trusted \
+            --timeout 180 --decompile-timeout 60 --random-replay 4096 \
+            | tee build/real-ghidra-result.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path("build/real-ghidra-result.json").read_text())
+          print(json.dumps(result, indent=2))
+          assert result["status"] == "DIRECT_VERIFIED", result
+          assert result["verification"]["formal"]["status"] == "UNSAT", result
+          assert result["verification"]["native_replay"] >= 4096, result
+
+      - name: Export real branch CFG fixtures (inspection gate)
+        env:
+          GHIDRA_INSTALL_DIR: ${{ runner.temp }}/ghidra/ghidra_12.2_PUBLIC
+        run: |
+          python - <<'PY'
+          import json
+          from ghidra_adapter import export
+          binary = "build/libchrono_fixture.so"
+          for name in ("branch_transform", "branch_join"):
+              result = export(binary, name, timeout=180, decompile_timeout=60)
+              assert result["status"] == "RAW_PSEUDOCODE", result
+              analysis = result["analysis"]
+              print(json.dumps({
+                  "function": name,
+                  "blocks": analysis["blocks"],
+                  "block_count": analysis["block_count"],
+                  "edge_count": analysis["edge_count"],
+                  "operation_counts": analysis["operation_counts"],
+                  "has_cycles": analysis["has_cycles"],
+                  "decompiler_c_source": analysis["decompiler_c_source"],
+              }, indent=2))
+              assert analysis["block_count"] >= 2, analysis
+              assert analysis["edge_count"] >= 1, analysis
+          PY
+          PY
+
+      - name: Upload real Ghidra evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-ghidra-v0.18-evidence
+          path: |
+            build/real-ghidra-result.json
+          if-no-files-found: ignore
+          retention-days: 30
+
 
       - name: Run complete regression suite
         run: python -m unittest discover -v
