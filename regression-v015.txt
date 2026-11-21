@@ -94,6 +94,6 @@ test_signed (test_typed_bridge.TypedBridgeTests.test_signed) ... ok
 test_sub (test_typed_bridge.TypedBridgeTests.test_sub) ... ok
 
 ----------------------------------------------------------------------
-Ran 95 tests in 5.405s
+Ran 95 tests in 6.339s
 
 OK
