@@ -110,7 +110,7 @@ public class ChronoExport extends GhidraScript {
 
     private String exportJson(Function function, HighFunction high, String cSource) {
         StringBuilder b = new StringBuilder(32768);
-        b.append("{\"schema_version\":1,\"exporter\":\"ChronoExport\"");
+        b.append("{\"schema_version\":2,\"exporter\":\"ChronoExport\"");
         b.append(",\"ghidra_version\":").append(q(Application.getApplicationVersion()));
         b.append(",\"program\":{\"name\":").append(q(currentProgram.getName()));
         b.append(",\"language_id\":").append(q(currentProgram.getLanguage().getLanguageID().toString()));
@@ -173,7 +173,7 @@ public class ChronoExport extends GhidraScript {
                 b.append("{\"opcode\":").append(op.getOpcode());
                 b.append(",\"mnemonic\":").append(q(op.getMnemonic()));
                 b.append(",\"sequence_address\":").append(q(op.getSeqnum().getTarget().toString()));
-                b.append(",\"dead\":").append(op.isDead());
+                b.append(",\"ast_dead_flag\":").append(op.isDead());
                 b.append(",\"output\":"); appendVarnode(b, op.getOutput());
                 b.append(",\"inputs\":[");
                 for (int ii = 0; ii < op.getNumInputs(); ii++) {
