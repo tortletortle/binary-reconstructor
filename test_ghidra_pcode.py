@@ -197,8 +197,8 @@ def build_branch_original(root):
     source = root / "branches.c"
     output = root / "branches.so"
     source.write_text(
-        "#include <stdint.h>\\n"
-        "uint32_t branch_transform(uint32_t x){if(x<10u)return x+1u;return x*2u+3u;}\\n"
+        "#include <stdint.h>\n"
+        "uint32_t branch_transform(uint32_t x){if(x<10u)return x+1u;return x*2u+3u;}\n"
         "uint32_t branch_join(uint32_t x){uint32_t y;if((x&1u)==0u)y=x+7u;else y=x*3u;return y^0x55u;}\\n"
     )
     subprocess.run(["gcc", "-O1", "-fno-inline", "-shared", "-fPIC", str(source), "-o", str(output)],
