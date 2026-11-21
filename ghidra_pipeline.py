@@ -14,7 +14,8 @@ import subprocess
 import tempfile
 
 from cers_multi import MASK, PROBES
-from ghidra_pcode import (UnsupportedPcode, evaluate_pcode_ast,\n                          lower_acyclic_uint32_candidates)
+from ghidra_pcode import (UnsupportedPcode, evaluate_pcode_ast,
+                          lower_acyclic_uint32_candidates)
 from formal import compare
 from ghidra_adapter import export
 
