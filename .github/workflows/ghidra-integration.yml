@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "ghidra_*.py"
+      - "test_ghidra_*.py"
       - "ghidra_scripts/**"
       - "tests/ghidra/**"
       - ".github/workflows/ghidra-integration.yml"
