@@ -4,7 +4,8 @@ import subprocess
 import tempfile
 import unittest
 
-from ghidra_pcode import (ExportValidationError, UnsupportedPcode, evaluate_pcode_ast,\n                          lower_acyclic_uint32, lower_linear_uint32, validate_export)
+from ghidra_pcode import (ExportValidationError, UnsupportedPcode, evaluate_pcode_ast,
+                          lower_acyclic_uint32, lower_linear_uint32, validate_export)
 from ghidra_pipeline import verify_lowered
 
 
@@ -199,7 +200,7 @@ def build_branch_original(root):
     source.write_text(
         "#include <stdint.h>\n"
         "uint32_t branch_transform(uint32_t x){if(x<10u)return x+1u;return x*2u+3u;}\n"
-        "uint32_t branch_join(uint32_t x){uint32_t y;if((x&1u)==0u)y=x+7u;else y=x*3u;return y^0x55u;}\\n"
+        "uint32_t branch_join(uint32_t x){uint32_t y;if((x&1u)==0u)y=x+7u;else y=x*3u;return y^0x55u;}\n"
     )
     subprocess.run(["gcc", "-O1", "-fno-inline", "-shared", "-fPIC", str(source), "-o", str(output)],
                    check=True, capture_output=True, timeout=10)
