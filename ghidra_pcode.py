@@ -8,7 +8,7 @@ from typing import Any
 
 from cers_multi import MASK, render
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 MAX_BLOCKS = 4096
 MAX_OPS = 100_000
 MAX_VARNODE_SIZE = 16
@@ -59,9 +59,10 @@ def _key(vn: dict) -> tuple[str, int, int]:
 
 
 def validate_export(data: Any, expected_function: str | None = None) -> dict:
-    """Validate and summarize a ChronoExport schema-v1 JSON document."""
+    """Validate schema-v1/v2 exports and summarize their P-code/CFG."""
     _require(isinstance(data, dict), "export root must be an object")
-    _require(data.get("schema_version") == SCHEMA_VERSION, "unsupported Ghidra export schema")
+    schema_version = data.get("schema_version")
+    _require(schema_version in (1, SCHEMA_VERSION), "unsupported Ghidra export schema")
     _require(data.get("exporter") == "ChronoExport", "unexpected Ghidra exporter")
     _require(isinstance(data.get("ghidra_version"), str) and data["ghidra_version"],
              "missing Ghidra version")
@@ -139,7 +140,8 @@ def validate_export(data: Any, expected_function: str | None = None) -> dict:
             _require(isinstance(op.get("mnemonic"), str) and op["mnemonic"],
                      f"block {bi} op {oi}: missing mnemonic")
             _require(isinstance(op.get("sequence_address"), str), f"block {bi} op {oi}: missing sequence address")
-            _require(type(op.get("dead")) is bool, f"block {bi} op {oi}: missing dead flag")
+            flag_name = "dead" if schema_version == 1 else "ast_dead_flag"
+            _require(type(op.get(flag_name)) is bool, f"block {bi} op {oi}: missing {flag_name} flag")
             _require(op.get("output") is None or isinstance(op.get("output"), dict),
                      f"block {bi} op {oi}: invalid output")
             _require(isinstance(op.get("inputs"), list), f"block {bi} op {oi}: inputs must be an array")
@@ -186,7 +188,7 @@ def validate_export(data: Any, expected_function: str | None = None) -> dict:
     has_cycles = visited != len(by_id)
 
     return {
-        "schema_version": SCHEMA_VERSION,
+        "schema_version": schema_version,
         "ghidra_version": data["ghidra_version"],
         "program": program,
         "function": function,
@@ -275,8 +277,10 @@ def lower_linear_uint32(summary: dict) -> dict:
         "INT_LEFT": "<<", "INT_RIGHT": ">>",
     }
     for op in ops:
-        if op["dead"]:
-            continue
+        # The PcodeBlockBasic iterator already yields operations belonging to
+        # this block. PcodeOpAST.isDead() is internal AST bookkeeping and can
+        # be true for operations present in the decompiler CFG. Schema v2
+        # preserves it as ast_dead_flag; it is not a semantic liveness filter.
         seen_non_dead += 1
         mnemonic = op["mnemonic"].upper()
         inputs = op["inputs"]
