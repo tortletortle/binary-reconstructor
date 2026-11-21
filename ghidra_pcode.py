@@ -99,6 +99,11 @@ def validate_export(data: Any, expected_function: str | None = None) -> dict:
     _require(isinstance(function.get("parameters"), list), "missing parameter metadata")
     _require(type(function.get("return_size")) is int and function["return_size"] >= 0,
              "invalid return size")
+    return_storage = function.get("return_storage")
+    _require(isinstance(return_storage, dict) and isinstance(return_storage.get("varnodes"), list),
+             "missing return storage metadata")
+    for vi, vn in enumerate(return_storage["varnodes"]):
+        _valid_varnode(vn, f"return storage {vi}")
     _require(isinstance(function.get("external"), bool) and isinstance(function.get("thunk"), bool),
              "missing external/thunk flags")
     _require(not function["external"] and not function["thunk"], "external/thunk functions are not accepted")
@@ -222,6 +227,10 @@ def lower_linear_uint32(summary: dict) -> dict:
         raise UnsupportedPcode("expected exactly one 32-bit parameter")
     if function["return_size"] != 4:
         raise UnsupportedPcode("expected a 32-bit return value")
+    return_registers = {vn.get("register_name", "").upper()
+                        for vn in function["return_storage"]["varnodes"] if vn.get("register_name")}
+    if not return_registers.intersection({"RAX", "EAX"}):
+        raise UnsupportedPcode("return storage is not the SysV x86-64 RAX/EAX register")
 
     param = function["parameters"][0]
     param_name = param["name"]
