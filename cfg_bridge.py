@@ -306,14 +306,14 @@ def _blocks(statements, labels):
     return blocks
 
 
-def verify(binary, lowered):
+def verify(binary, lowered, timeout_ms=3000):
     binary = pathlib.Path(binary).resolve(strict=True)
     with tempfile.TemporaryDirectory() as d:
         src = pathlib.Path(d) / 'candidate.c'; out = src.with_suffix('.so')
         src.write_text('#include <stdint.h>\nuint32_t transform(uint32_t x){return ' + lowered['expression'] + ';}\n')
         subprocess.run(['gcc', '-O2', '-shared', '-fPIC', str(src), '-o', str(out)],
                        check=True, capture_output=True, timeout=10)
-        result = compare(binary, out)
+        result = compare(binary, out, timeout_ms=timeout_ms)
         if result['status'] == 'UNSAT':
             return {'status': 'MODEL_VERIFIED', 'formal': result, 'tested': 0}
         if result['status'] == 'SAT' and result.get('input') is not None:
