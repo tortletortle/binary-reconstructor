@@ -94,63 +94,44 @@ jobs:
           import json
           from pathlib import Path
           from ghidra_adapter import export
-          from ghidra_pcode import lower_acyclic_uint32
-          from ghidra_pipeline import verify_lowered
+          from ghidra_pipeline import verify_acyclic_candidates
 
           binary = "build/libchrono_fixture.so"
-          for name in ("branch_transform", "branch_join"):
+          for name in ("branch_transform", "branch_join", "nested_branch", "branch_three_way"):
               result = export(binary, name, timeout=180, decompile_timeout=60)
               assert result["status"] == "RAW_PSEUDOCODE", result
               analysis = result["analysis"]
               operations = analysis["operation_counts"]
-              assert analysis["block_count"] == 3, analysis
-              assert analysis["edge_count"] == 3, analysis
+              assert analysis["block_count"] >= 3, analysis
+              assert analysis["edge_count"] >= 3, analysis
               assert operations.get("CBRANCH", 0) >= 1, operations
               assert operations.get("MULTIEQUAL", 0) >= 1, operations
 
-              lowered = lower_acyclic_uint32(analysis)
-              checked = verify_lowered(binary, name, lowered, random_replay=4096)
+              search = verify_acyclic_candidates(
+                  binary, name, analysis, random_replay=4096
+              )
               summary = {
                   "function": name,
                   "block_count": analysis["block_count"],
                   "edge_count": analysis["edge_count"],
                   "operation_counts": operations,
                   "decompiler_c_source": analysis["decompiler_c_source"],
-                  "expression": lowered["expression"],
-                  "cfg_paths": lowered["cfg_paths"],
-                  "verification": checked,
+                  "status": search["status"],
+                  "polarity_search": search["polarity_search"],
               }
+              if search["status"] == "DIRECT_VERIFIED":
+                  summary["expression"] = search["lowered"]["expression"]
+                  summary["cfg_paths"] = search["lowered"]["cfg_paths"]
+                  summary["verification"] = search["verification"]
               print(json.dumps(summary, indent=2))
-              assert checked["status"] == "DIRECT_VERIFIED", summary
-              assert checked["formal"]["status"] == "UNSAT", summary
-              assert checked["native_replay"] >= 4096, summary
+              assert search["status"] == "DIRECT_VERIFIED", summary
+              assert search["verification"]["formal"]["status"] == "UNSAT", summary
+              assert search["verification"]["native_replay"] >= 4096, summary
               Path(f"build/{name}-ghidra-export.json").write_text(
                   json.dumps(result["pcode_export"], indent=2), encoding="utf-8"
               )
               Path(f"build/{name}-verification.json").write_text(
                   json.dumps(summary, indent=2), encoding="utf-8"
-              )
-
-          # Export deeper control-flow fixtures before extending the lowerer.
-          # These are inspection-only gates until their SSA shapes are reviewed.
-          for name in ("nested_branch", "branch_three_way"):
-              result = export(binary, name, timeout=180, decompile_timeout=60)
-              assert result["status"] == "RAW_PSEUDOCODE", result
-              analysis = result["analysis"]
-              summary = {
-                  "function": name,
-                  "block_count": analysis["block_count"],
-                  "edge_count": analysis["edge_count"],
-                  "operation_counts": analysis["operation_counts"],
-                  "has_cycles": analysis["has_cycles"],
-                  "decompiler_c_source": analysis["decompiler_c_source"],
-                  "blocks": analysis["blocks"],
-              }
-              print(json.dumps(summary, indent=2))
-              assert analysis["block_count"] >= 3, summary
-              assert analysis["operation_counts"].get("CBRANCH", 0) >= 2, summary
-              Path(f"build/{name}-ghidra-export.json").write_text(
-                  json.dumps(result["pcode_export"], indent=2), encoding="utf-8"
               )
           PY
 
@@ -158,7 +139,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: real-ghidra-v0.19-cfg-verification
+          name: real-ghidra-v0.19-nested-cfg-verification
           path: |
             build/real-ghidra-mul-add-result.json
             build/branch_transform-ghidra-export.json
