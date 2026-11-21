@@ -87,7 +87,7 @@ public class ChronoExport extends GhidraScript {
         b.append("]}");
     }
 
-    private Function findFunction(String selector) {
+    private Function findFunction(String selector) throws Exception {
         Function found = null;
         FunctionIterator it = currentProgram.getFunctionManager().getFunctions(true);
         while (it.hasNext()) {
