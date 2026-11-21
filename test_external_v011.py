@@ -39,6 +39,14 @@ class InstructionTests(unittest.TestCase):
             lifted_result=compare(original,out);self.assertEqual(lifted_result['status'],'UNSAT',msg=f'lifted-code comparison failed: {lifted_result!r}')
     def test_bswap(self):
         self.check('mov %edi,%eax\nbswap %eax\nret','mov %edi,%eax\nbswap %eax\nret','mov %edi,%eax\nret')
+    def test_rorx(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=pathlib.Path(d);a=root/'rorx';a.mkdir();b=root/'ror';b.mkdir();c=root/'wrong';c.mkdir()
+            original=test_reconstruct.LiftTests().binary(d,'mov %edi,%eax\\nrorx $8,%eax,%eax\\nret')
+            equivalent=test_reconstruct.LiftTests().binary(b,'mov %edi,%eax\\nror $8,%eax\\nret')
+            wrong=test_reconstruct.LiftTests().binary(c,'mov %edi,%eax\\nrol $8,%eax\\nret')
+            self.assertEqual(compare(original,equivalent)['status'],'UNSAT')
+            self.assertEqual(compare(original,wrong)['status'],'SAT')
     def test_movzx(self):
         self.check('movzbl %dil,%eax\nret','mov %edi,%eax\nand $255,%eax\nret','mov %edi,%eax\nand $127,%eax\nret')
     def test_memory_rejected(self):
