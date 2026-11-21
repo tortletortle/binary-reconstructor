@@ -32,7 +32,9 @@ class InstructionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             root=pathlib.Path(d); original=pathlib.Path(test_reconstruct.LiftTests().binary(d,asm));a=root/'truth';a.mkdir();b=root/'wrong';b.mkdir()
             good=test_reconstruct.LiftTests().binary(a,truth);bad=test_reconstruct.LiftTests().binary(b,wrong)
-            self.assertEqual(compare(original,good)['status'],'UNSAT');self.assertEqual(compare(original,bad)['status'],'SAT')
+            good_result=compare(original,good);bad_result=compare(original,bad)
+            self.assertEqual(good_result['status'],'UNSAT',msg=f'good comparison failed: {good_result!r}')
+            self.assertEqual(bad_result['status'],'SAT',msg=f'wrong comparison failed: {bad_result!r}')
             src=root/'lift.c';src.write_text(lift_flow(original)['code']);out=root/'lift.so';subprocess.run(['gcc','-O2','-shared','-fPIC',str(src),'-o',str(out)],check=True)
             self.assertEqual(compare(original,out)['status'],'UNSAT')
     def test_bswap(self):
