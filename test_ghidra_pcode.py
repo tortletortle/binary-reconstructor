@@ -5,8 +5,8 @@ import tempfile
 import unittest
 
 from ghidra_pcode import (ExportValidationError, UnsupportedPcode, evaluate_pcode_ast,
-                          lower_acyclic_uint32, lower_linear_uint32, validate_export)
-from ghidra_pipeline import verify_lowered
+                          lower_acyclic_uint32, lower_acyclic_uint32_candidates, lower_linear_uint32, validate_export)
+from ghidra_pipeline import verify_acyclic_candidates, verify_lowered
 
 
 def vn(kind, space, offset, size, *, register=None, high=None):
@@ -331,7 +331,7 @@ class GhidraCfgLoweringTests(unittest.TestCase):
         self.assertEqual((summary["block_count"], summary["edge_count"]), (3, 3))
         self.assertFalse(summary["has_cycles"])
         self.assertEqual(summary["unsupported_ops"], [])
-        lowered = lower_acyclic_uint32(summary)
+        lowered = lower_acyclic_uint32(summary, branch_polarities={0: False})
         self.assertEqual(lowered["cfg_paths"], 2)
         self.assertIn("?", lowered["expression"])
         with tempfile.TemporaryDirectory() as d:
@@ -362,7 +362,7 @@ class GhidraCfgLoweringTests(unittest.TestCase):
         # Redirect the false-condition edge to the fallthrough block. The CFG
         # remains structurally valid, but its path semantics are now reversed.
         data["cfg"]["blocks"][0]["ops"][-1]["inputs"][0]["offset_hex"] = "0x402010"
-        lowered = lower_acyclic_uint32(validate_export(data))
+        lowered = lower_acyclic_uint32(validate_export(data), branch_polarities={0: False})
         with tempfile.TemporaryDirectory() as d:
             binary = build_branch_original(pathlib.Path(d))
             result = verify_lowered(binary, "branch_transform", lowered, random_replay=32)
@@ -374,13 +374,32 @@ class GhidraCfgLoweringTests(unittest.TestCase):
         data = make_branch_export()
         data["cfg"]["blocks"][0]["ops"][-1]["inputs"][0]["offset_hex"] = "0x402099"
         with self.assertRaises(UnsupportedPcode):
-            lower_acyclic_uint32(validate_export(data))
+            lower_acyclic_uint32(validate_export(data), branch_polarities={0: False})
 
     def test_multiple_blocks_without_branch_terminator_rejected(self):
         data = make_branch_export()
         data["cfg"]["blocks"][0]["ops"].pop()
         with self.assertRaises(UnsupportedPcode):
             lower_acyclic_uint32(validate_export(data))
+
+    def test_missing_branch_polarity_is_rejected(self):
+        summary = validate_export(make_branch_export())
+        with self.assertRaises(UnsupportedPcode):
+            lower_acyclic_uint32(summary)
+
+    def test_smt_search_selects_the_effective_branch_polarity(self):
+        summary = validate_export(make_branch_export("branch_transform"))
+        candidates = lower_acyclic_uint32_candidates(summary)
+        self.assertEqual(len(candidates), 2)
+        with tempfile.TemporaryDirectory() as d:
+            binary = build_branch_original(pathlib.Path(d))
+            result = verify_acyclic_candidates(
+                binary, "branch_transform", summary, random_replay=32
+            )
+        self.assertEqual(result["status"], "DIRECT_VERIFIED")
+        self.assertEqual(result["polarity_search"]["candidate_count"], 2)
+        self.assertEqual(result["polarity_search"]["verified_count"], 1)
+        self.assertEqual(result["polarity_search"]["selected_branch_polarities"], {"0": False})
 
     def test_comparison_ast_uses_unsigned_uint32_semantics(self):
         summary = validate_export(make_branch_export())
