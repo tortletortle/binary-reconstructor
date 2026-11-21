@@ -40,11 +40,17 @@ class InstructionTests(unittest.TestCase):
     def test_bswap(self):
         self.check('mov %edi,%eax\nbswap %eax\nret','mov %edi,%eax\nbswap %eax\nret','mov %edi,%eax\nret')
     def test_rorx(self):
+        def build(directory, asm, bmi2=False):
+            src=directory/'f.S';out=directory/'f.so'
+            src.write_text('.text\n.globl transform\n.type transform,@function\ntransform:\n'+asm+'\n.size transform,.-transform\n.section .note.GNU-stack,"",@progbits\n')
+            command=['gcc']+(['-mbmi2'] if bmi2 else [])+['-shared','-fPIC',str(src),'-o',str(out)]
+            subprocess.run(command,check=True,capture_output=True)
+            return str(out)
         with tempfile.TemporaryDirectory() as d:
             root=pathlib.Path(d);a=root/'rorx';a.mkdir();b=root/'ror';b.mkdir();c=root/'wrong';c.mkdir()
-            original=test_reconstruct.LiftTests().binary(d,'mov %edi,%eax\\nrorx $8,%eax,%eax\\nret')
-            equivalent=test_reconstruct.LiftTests().binary(b,'mov %edi,%eax\\nror $8,%eax\\nret')
-            wrong=test_reconstruct.LiftTests().binary(c,'mov %edi,%eax\\nrol $8,%eax\\nret')
+            original=build(a,'mov %edi,%eax\nrorx $8,%eax,%eax\nret',bmi2=True)
+            equivalent=build(b,'mov %edi,%eax\nror $8,%eax\nret')
+            wrong=build(c,'mov %edi,%eax\nrol $8,%eax\nret')
             self.assertEqual(compare(original,equivalent)['status'],'UNSAT')
             self.assertEqual(compare(original,wrong)['status'],'SAT')
     def test_movzx(self):
