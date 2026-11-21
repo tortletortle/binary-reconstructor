@@ -1,10 +1,10 @@
 # ChronoCompiler / 时光倒流编译器
 
-**Current research snapshot: V0.17 — structured Ghidra P-code export and a narrow direct-verification path.**
+**Current research snapshot: V0.18 — real Ghidra 12.2 Headless export, P-code lowering, and SMT/native end-to-end verification on a narrow fixture.**
 
 ChronoCompiler is an experimental binary reverse-engineering assistant. Its verified core currently targets trusted Linux x86-64 SysV functions with one unsigned 32-bit input and one unsigned 32-bit return. The project combines restricted decompiler-style parsing, CFG/path analysis, expression lifting, candidate recompilation, native counterexample replay, and SMT-based equivalence checking.
 
-It is **not yet a general-purpose decompiler**. There is no production LLM integration, no arbitrary firmware support, and no verified real-Ghidra end-to-end run. The current Ghidra frontend is a structured P-code integration prototype; its schema and lowering tests use synthetic exports.
+It is **not yet a general-purpose decompiler**. There is no production LLM integration, no arbitrary firmware support, and no general-purpose P-code interpreter. A real Ghidra 12.2 end-to-end run now passes on a deliberately narrow trusted Linux x86-64 SysV uint32 fixture; broad corpus and firmware validation remain outstanding.
 
 ## Current pipeline
 
@@ -13,15 +13,15 @@ It is **not yet a general-purpose decompiler**. There is no production LLM integ
 3. **Candidate generation** — C source generation and native compilation.
 4. **Verification** — a deliberately restricted x86-64 machine-code model, Z3 bit-vector equivalence checking, and native replay of concrete SAT counterexamples.
 5. **Branch repair** — V0.15 single-edit and V0.16 ranked one/two-edit CEGIS search over branch comparison operators and integer literals.
-6. **Ghidra P-code bridge (V0.17)** — Headless Analyzer exporter for decompiler C, function metadata, HighFunction P-code, and CFG; a fail-closed one-block uint32 subset can be lowered and checked against the original named function.
+6. **Ghidra P-code bridge (V0.18)** — real Ghidra 12.2 Headless export for decompiler C, inferred HighFunction prototype, P-code, and CFG; a fail-closed one-block uint32 subset is lowered and checked against the original named function.
 
 ## Latest validation
 
-- **119/119** local regression tests passed.
+- **120/120** local regression tests passed.
 - V0.15 single-edit pilot: 14/14 manually authored GCC/Clang fixtures repaired and SMT-verified; 57,652 cross-compiler comparisons, no mismatches.
 - V0.16 multi-edit pilot: 4/4 positive fixtures repaired; 2/2 three-edit negative controls returned UNRESOLVED under a two-edit limit.
 - V0.16: 3,953 candidates generated, 3,930 counterexample-pruned, 23 SMT checks, 19 CEGIS restarts; 16,452 cross-compiler comparisons, no mismatches.
-- V0.17 synthetic P-code frontend pilot: `x * 5 + 3` lowered to a candidate, returned SMT UNSAT, and passed 4,120 native replays; the wrong `x * 5 + 4` fixture returned SAT and its counterexample was replayed.
+- V0.17 synthetic P-code pilot: `x * 5 + 3` lowered to a candidate, returned SMT UNSAT, and passed 4,120 native replays; the wrong `x * 5 + 4` fixture returned SAT and its counterexample was replayed.\n- V0.18 real Ghidra 12.2 CI: actual ELF import, Java exporter execution, HighFunction P-code extraction, lowering, SMT UNSAT, and 4,120 native replays; 120/120 regression tests passed. See [real Ghidra evidence](real-ghidra-v018-evidence.md).
 
 These are small development fixtures, not an independent blind corpus or firmware results. The V0.17 P-code export is synthetic; no real Ghidra runtime was available in the development environment. SMT UNSAT is relative to the current supported machine-code model; unsupported instructions and solver UNKNOWN are not proof.
 
