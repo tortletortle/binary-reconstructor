@@ -47,6 +47,7 @@ def make_export(add_constant=3):
             "calling_convention": "default",
             "return_type": "uint",
             "return_size": 4,
+            "return_storage": {"text": "EAX", "varnodes": [vn("register", "register", 0, 4, register="EAX")]},
             "external": False,
             "thunk": False,
             "parameters": [{
@@ -110,6 +111,12 @@ class GhidraPcodeValidationTests(unittest.TestCase):
         data["schema_version"] = 99
         with self.assertRaises(ExportValidationError):
             validate_export(data)
+
+    def test_non_sysv_return_register_rejected(self):
+        data = make_export()
+        data["function"]["return_storage"]["varnodes"][0]["register_name"] = "RCX"
+        with self.assertRaises(UnsupportedPcode):
+            lower_linear_uint32(validate_export(data))
 
     def test_predecessor_successor_mismatch_rejected(self):
         data = make_export()
