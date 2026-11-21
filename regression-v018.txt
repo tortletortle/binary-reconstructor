@@ -1,0 +1,34 @@
+ChronoCompiler V0.18 regression and real-Ghidra integration report
+
+Automated CI run:
+  https://github.com/tortletortle/binary-reconstructor/actions/runs/44886523615
+
+Commit under test:
+  6b0efc46f8885094192c921be8274e7e900ceee1
+
+Environment:
+  Ubuntu 24.04 x86-64
+  Temurin OpenJDK 25.0.5
+  Ghidra 12.2
+  Python 3.13.18
+  GCC, GNU binutils, libz3-4
+
+Full regression suite:
+  Ran 120 tests in 8.176s
+  OK
+
+Real Ghidra end-to-end fixture:
+  ELF shared library imported by real Ghidra Headless Analyzer
+  ChronoExport.java executed inside Ghidra 12.2
+  Actual HighFunction P-code exported and parsed
+  Recovered expression: ((x * 5u) + 3u)
+  Formal result: UNSAT
+  Native replay: 4,120
+  Pipeline status: DIRECT_VERIFIED
+
+Two production integration defects were discovered and fixed:
+  1. The listing Function database signature remained unknown even though HighFunction had inferred parameter/return information. Exporter now reads the HighFunction FunctionPrototype.
+  2. HighFunction PcodeOpAST objects reported isDead=true on the syntax-tree-backed operation stream in this Ghidra run. The lowering path preserves the marker for diagnostics but does not treat it as an instruction filter.
+
+Scope:
+  This is one controlled uint32 -> uint32 x86-64 SysV fixture. Multi-block CFGs, branches, loops, memory, calls, other ABIs, arbitrary firmware, and cross-architecture behavior remain unverified.
