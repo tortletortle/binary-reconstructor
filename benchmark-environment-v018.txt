@@ -1,0 +1,11 @@
+ChronoCompiler V0.18 local development environment
+Python 3.13.5
+Linux 6.18.57 x86_64 GNU/Linux
+GCC available
+GNU objdump available
+System Z3 shared library: libz3.so.4
+OpenJDK 21.0.12.1
+Ghidra installation: NOT INSTALLED
+Target integration CI: Ghidra 12.2, Java 25, Python 3.13, Ubuntu x86-64
+Target Ghidra release archive: ghidra_12.2_PUBLIC_20261016.zip
+Target archive SHA-256: 2c2cd776db3c1f6a097ba418922378ac3649cadd5e844a6f5f088ae628a7be67
