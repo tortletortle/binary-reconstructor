@@ -1,0 +1,36 @@
+ChronoCompiler V0.18 local validation report
+
+Environment:
+  Python 3.13.5
+  Linux x86_64
+  GCC available
+  GNU objdump available
+  libz3.so.4 available
+  OpenJDK 21.0.12.1
+  Ghidra: NOT INSTALLED
+
+Local checks:
+  python -m unittest discover -v
+  Result: Ran 122 tests; OK
+  Duration: 6.900 seconds (host-dependent)
+
+New test module:
+  test_ghidra_smoke.py: 3 tests
+
+Native fixture:
+  tests/fixtures/ghidra_mul_add.c
+  Compiled to ELF64 x86-64 shared object.
+  Exported symbol: chrono_mul_add
+  Disassembly inspected: imul $5, %edi, %eax; add $3, %eax; ret
+  Additional native boundary checks: 6/6 passed.
+
+Workflow:
+  .github/workflows/ghidra-12-2-integration.yml
+  YAML parse: OK
+  Ghidra release pinned: Ghidra_12.2_build
+  Archive SHA-256 pinned and verified in workflow command.
+  Real Ghidra Headless run: PENDING GitHub Actions.
+
+Evidence boundary:
+  No claim of successful real Ghidra Java compilation, P-code export, or
+  end-to-end verification is made until the workflow produces its artifacts.
